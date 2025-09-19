@@ -41,10 +41,10 @@ interface BaseRepositoryInterface
     /**
      * Delete resource
      * 
-     * @param int $id
+     * @param mixed $id
      * @return bool
      */
-    public function delete(int $id);
+    public function delete($id);
     
     /**
      * Find resource by id

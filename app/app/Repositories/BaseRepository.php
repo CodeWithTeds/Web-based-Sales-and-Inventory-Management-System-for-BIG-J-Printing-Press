@@ -77,11 +77,14 @@ class BaseRepository implements BaseRepositoryInterface
     /**
      * Delete resource
      *
-     * @param int $id
+     * @param Model|int $id
      * @return bool
      */
-    public function delete(int $id)
+    public function delete($id)
     {
+        if ($id instanceof Model) {
+            return $id->delete();
+        }
         return $this->model->destroy($id);
     }
 

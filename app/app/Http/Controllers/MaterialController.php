@@ -8,10 +8,12 @@ use App\Http\Requests\MaterialRequestFormRequest;
 use App\Repositories\MaterialRepositoryInterface;
 use Illuminate\Http\Request;
 use App\Models\Material;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\JsonResponse as HttpJsonResponse;
+use App\Traits\ResponseHelpers;
 
 class MaterialController extends BaseController
 {
+    use ResponseHelpers;
     /**
      * MaterialController constructor.
      *
@@ -43,7 +45,7 @@ class MaterialController extends BaseController
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response|JsonResponse
+     * @return \Illuminate\Http\Response|HttpJsonResponse
      */
     public function store(Request $request)
     {
@@ -55,7 +57,7 @@ class MaterialController extends BaseController
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response|JsonResponse
+     * @return \Illuminate\Http\Response|HttpJsonResponse
      */
     public function update(Request $request, $id)
     {
@@ -66,17 +68,14 @@ class MaterialController extends BaseController
      * Show the form for adding stock to a material.
      *
      * @param int $id
-     * @return \Illuminate\Http\Response|JsonResponse
+     * @return \Illuminate\Http\Response|HttpJsonResponse
      */
     public function showStockInForm($id)
     {
         $item = $this->repository->find($id);
         
         if (request()->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'data' => $item
-            ]);
+            return $this->successResponse($item);
         }
         
         return view($this->viewPath . '.stock-in', [
@@ -90,7 +89,7 @@ class MaterialController extends BaseController
      *
      * @param StockInRequest $request
      * @param int $id
-     * @return \Illuminate\Http\Response|JsonResponse
+     * @return \Illuminate\Http\Response|HttpJsonResponse
      */
     public function stockIn(StockInRequest $request, $id)
     {
@@ -98,21 +97,14 @@ class MaterialController extends BaseController
 
         $this->repository->stockIn($id, $validated['quantity'], $validated['notes'] ?? null);
         
-        if ($request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Stock added successfully to ' . $this->resourceName
-            ]);
-        }
-
-        return redirect()->route($this->routePrefix . '.index')
-            ->with('success', 'Stock added successfully to ' . $this->resourceName);
+        $message = 'Stock added successfully to ' . $this->resourceName;
+        return $this->respondWith(null, $message, $this->routePrefix . '.index');
     }
 
     /**
      * Display materials that are low in stock.
      *
-     * @return \Illuminate\Http\Response|JsonResponse
+     * @return \Illuminate\Http\Response|HttpJsonResponse
      */
     public function index()
     {
@@ -120,9 +112,8 @@ class MaterialController extends BaseController
         $categories = $this->repository->getUniqueCategories();
 
         if (request()->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'data' => $items,
+            return $this->successResponse([
+                'items' => $items,
                 'categories' => $categories
             ]);
         }
@@ -138,7 +129,7 @@ class MaterialController extends BaseController
      * Display materials by category.
      *
      * @param Request $request
-     * @return \Illuminate\Http\Response|JsonResponse
+     * @return \Illuminate\Http\Response|HttpJsonResponse
      */
     public function byCategory(Request $request)
     {
@@ -155,9 +146,8 @@ class MaterialController extends BaseController
         }
         
         if ($request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'data' => $items,
+            return $this->successResponse([
+                'items' => $items,
                 'categories' => $categories,
                 'category' => $category
             ]);
@@ -174,17 +164,14 @@ class MaterialController extends BaseController
     /**
      * Show the form for requesting a material.
      *
-     * @return \Illuminate\Http\Response|JsonResponse
+     * @return \Illuminate\Http\Response|HttpJsonResponse
      */
     public function showRequestForm()
     {
         $materials = $this->repository->all();
         
         if (request()->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'data' => $materials
-            ]);
+            return $this->successResponse($materials);
         }
         
         return view($this->viewPath . '.request-form', [
@@ -197,7 +184,7 @@ class MaterialController extends BaseController
      * Process the material request.
      *
      * @param MaterialRequestFormRequest $request
-     * @return \Illuminate\Http\Response|JsonResponse
+     * @return \Illuminate\Http\Response|HttpJsonResponse
      */
     public function submitRequest(MaterialRequestFormRequest $request)
     {
@@ -207,15 +194,8 @@ class MaterialController extends BaseController
         // For now, we'll just redirect with a success message
         
         $material = $this->repository->find($validated['material_id']);
+        $message = 'Material request for ' . $material->name . ' submitted successfully';
         
-        if ($request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Material request for ' . $material->name . ' submitted successfully'
-            ]);
-        }
-        
-        return redirect()->route($this->routePrefix . '.index')
-            ->with('success', 'Material request for ' . $material->name . ' submitted successfully');
+        return $this->respondWith(null, $message, $this->routePrefix . '.index');
     }
 }

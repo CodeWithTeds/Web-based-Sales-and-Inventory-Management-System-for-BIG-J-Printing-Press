@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class Material extends Model
+class Product extends Model
 {
     use HasFactory;
 
@@ -19,11 +19,9 @@ class Material extends Model
         'name',
         'description',
         'category',
-        'unit',
-        'quantity',
-        'reorder_level',
-        'unit_price',
-        'supplier',
+        'image_path',
+        'price',
+        'active',
         'notes'
     ];
 
@@ -33,42 +31,35 @@ class Material extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'quantity' => 'float',
-        'reorder_level' => 'integer',
-        'unit_price' => 'decimal:2',
+        'price' => 'decimal:2',
+        'active' => 'boolean',
     ];
 
     /**
-     * Check if material is low in stock
-     *
-     * @return bool
-     */
-    public function isLowStock(): bool
-    {
-        return $this->quantity <= $this->reorder_level;
-    }
-    
-    /**
-     * Get the products that use this material.
+     * Get the materials required for this product.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
-    public function products(): BelongsToMany
+    public function materials(): BelongsToMany
     {
-        return $this->belongsToMany(Product::class, 'product_material')
+        return $this->belongsToMany(Material::class, 'product_material')
             ->withPivot('quantity')
             ->withTimestamps();
     }
 
     /**
-     * Calculate the total value of this material in inventory
+     * Calculate the total cost of materials for this product.
      *
      * @return float
      */
-    public function getTotalValue(): float
+    public function calculateMaterialCost(): float
     {
-        return $this->quantity * $this->unit_price;
+        $totalCost = 0;
+
+        foreach ($this->materials as $material) {
+            $totalCost += $material->price * $material->pivot->quantity_required;
+        }
+
+        return $totalCost;
     }
-
-
 }

@@ -1,0 +1,95 @@
+<?php
+
+namespace App\Repositories;
+
+use App\Models\Product;
+use App\Models\Material;
+
+class ProductRepository extends BaseRepository implements ProductRepositoryInterface
+{
+    /**
+     * ProductRepository constructor.
+     *
+     * @param Product $model
+     */
+    public function __construct(Product $model)
+    {
+        parent::__construct($model);
+    }
+
+    /**
+     * Get products by category
+     *
+     * @param string $category
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getByCategory(string $category)
+    {
+        return $this->model->where('category', $category)->get();
+    }
+
+    /**
+     * Get all unique categories
+     *
+     * @return array
+     */
+    public function getUniqueCategories()
+    {
+        return $this->model->distinct()->orderBy('category')->pluck('category')->toArray();
+    }
+
+    /**
+     * Get materials for a product
+     *
+     * @param int $productId
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getMaterials(int $productId)
+    {
+        $product = $this->find($productId);
+        return $product->materials;
+    }
+
+    /**
+     * Add material to a product
+     *
+     * @param int $productId
+     * @param int $materialId
+     * @param float $quantity
+     * @return \App\Models\Product
+     */
+    public function addMaterial(int $productId, int $materialId, float $quantity)
+    {
+        $product = $this->find($productId);
+        $material = Material::findOrFail($materialId);
+
+        // Check if the material is already attached to the product
+        if ($product->materials()->where('material_id', $materialId)->exists()) {
+            // Update the existing pivot record
+            $product->materials()->updateExistingPivot($materialId, [
+                'quantity' => $quantity
+            ]);
+        } else {
+            // Attach the new material
+            $product->materials()->attach($materialId, [
+                'quantity' => $quantity
+            ]);
+        }
+
+        return $product->fresh(['materials']);
+    }
+
+    /**
+     * Remove material from a product
+     *
+     * @param int $productId
+     * @param int $materialId
+     * @return bool
+     */
+    public function removeMaterial(int $productId, int $materialId)
+    {
+        $product = $this->find($productId);
+        $product->materials()->detach($materialId);
+        return true;
+    }
+}

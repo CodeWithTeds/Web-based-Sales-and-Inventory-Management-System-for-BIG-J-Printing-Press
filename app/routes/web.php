@@ -3,8 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
-// Include materials routes
+// Include materials and products routes
 require __DIR__.'/materials.php';
+require __DIR__.'/products.php';
 
 Route::get('/', function () {
     return view('landing');
