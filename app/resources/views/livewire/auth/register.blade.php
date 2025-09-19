@@ -26,12 +26,13 @@ new #[Layout('components.layouts.auth')] class extends Component {
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
+        $validated['role'] = 'client'; // Set default role to client
 
         event(new Registered(($user = User::create($validated))));
 
-        Auth::login($user);
-
-        $this->redirectIntended(route('dashboard', absolute: false), navigate: true);
+        // Don't log in the user after registration
+        // Instead, redirect to the login page
+        $this->redirect(route('login'), navigate: true);
     }
 }; ?>
 

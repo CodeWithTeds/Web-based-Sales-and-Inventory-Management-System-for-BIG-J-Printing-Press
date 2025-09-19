@@ -18,7 +18,10 @@ test('new users can register', function () {
 
     $response
         ->assertHasNoErrors()
-        ->assertRedirect(route('dashboard', absolute: false));
+        ->assertRedirect(route('login', absolute: false)); // Redirect to login page after registration
 
-    $this->assertAuthenticated();
+    $this->assertDatabaseHas('users', [
+        'email' => 'test@example.com',
+        'role' => 'client'
+    ]);
 });

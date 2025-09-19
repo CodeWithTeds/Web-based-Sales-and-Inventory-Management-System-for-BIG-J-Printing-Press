@@ -19,4 +19,25 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/appearance', 'settings.appearance')->name('appearance.edit');
 });
 
-require __DIR__.'/auth.php';
+// Admin routes
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard', ['message' => 'Admin Dashboard']);
+    })->name('admin.dashboard');
+});
+
+// Staff routes
+Route::middleware(['auth', 'role:staff'])->prefix('staff')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard', ['message' => 'Staff Dashboard']);
+    })->name('staff.dashboard');
+});
+
+// Driver routes
+Route::middleware(['auth', 'role:driver'])->prefix('driver')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard', ['message' => 'Driver Dashboard']);
+    })->name('driver.dashboard');
+});
+
+require __DIR__ . '/auth.php';
