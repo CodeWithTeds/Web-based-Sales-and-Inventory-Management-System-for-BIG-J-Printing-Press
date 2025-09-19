@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex flex-col md:flex-row justify-between items-center gap-4">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Materials') }} - Category: {{ $category }}
+                {{ __('Materials') }} {{ $category ? '- Category: ' . $category : '' }}
             </h2>
             <div class="flex flex-wrap gap-2">
                 <a href="{{ route('materials.index') }}" class="inline-flex items-center px-3 py-1.5 bg-gray-600 border border-transparent rounded-md font-medium text-xs text-white uppercase tracking-wider hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
@@ -40,8 +40,8 @@
                                     <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{{ $item->category }}</td>
                                     <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{{ $item->quantity }}</td>
                                     <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{{ $item->unit }}</td>
-                                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">${{ number_format($item->unit_price, 2) }}</td>
-                                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">${{ number_format($item->getTotalValue(), 2) }}</td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">₱{{ number_format($item->unit_price, 2) }}</td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">₱{{ number_format($item->getTotalValue(), 2) }}</td>
                                     <td class="px-3 py-2 whitespace-nowrap text-sm">
                                         @if ($item->isLowStock())
                                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">

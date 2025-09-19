@@ -65,12 +65,12 @@
                             
                             <div class="mb-4">
                                 <h4 class="text-sm font-medium text-gray-500">Unit Price</h4>
-                                <p class="text-base">${{ number_format($item->unit_price, 2) }}</p>
+                                <p class="text-base">₱{{ number_format($item->unit_price, 2) }}</p>
                             </div>
                             
                             <div class="mb-4">
                                 <h4 class="text-sm font-medium text-gray-500">Total Value</h4>
-                                <p class="text-base">${{ number_format($item->getTotalValue(), 2) }}</p>
+                                <p class="text-base">₱{{ number_format($item->getTotalValue(), 2) }}</p>
                             </div>
                             
                             <div class="mb-4">
