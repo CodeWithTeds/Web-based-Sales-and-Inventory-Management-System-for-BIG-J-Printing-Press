@@ -66,4 +66,14 @@ class MaterialRepository extends BaseRepository implements MaterialRepositoryInt
     {
         return $this->model->where('category', $category)->get();
     }
+    
+    /**
+     * Get all unique categories
+     *
+     * @return array
+     */
+    public function getUniqueCategories()
+    {
+        return $this->model->select('category')->distinct()->orderBy('category')->pluck('category')->toArray();
+    }
 }

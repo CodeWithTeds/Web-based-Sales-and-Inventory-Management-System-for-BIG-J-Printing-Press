@@ -58,14 +58,20 @@ class BaseRepository implements BaseRepositoryInterface
     /**
      * Update resource
      *
-     * @param array $data
-     * @param int $id
+     * @param Model|array $data
+     * @param array|int $id
      * @return mixed
      */
-    public function update(array $data, int $id)
+    public function update($data, $id)
     {
-        $record = $this->find($id);
-        return $record->update($data);
+        if ($data instanceof Model) {
+            $record = $data;
+            $updateData = $id;
+        } else {
+            $record = $this->find($id);
+            $updateData = $data;
+        }
+        return $record->update($updateData);
     }
 
     /**

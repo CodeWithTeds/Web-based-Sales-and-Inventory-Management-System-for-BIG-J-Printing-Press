@@ -114,19 +114,22 @@ class MaterialController extends BaseController
      *
      * @return \Illuminate\Http\Response|JsonResponse
      */
-    public function lowStock()
+    public function index()
     {
-        $items = $this->repository->getLowStockMaterials();
-        
+        $items = $this->repository->paginate();
+        $categories = $this->repository->getUniqueCategories();
+
         if (request()->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'data' => $items
+                'data' => $items,
+                'categories' => $categories
             ]);
         }
-        
-        return view($this->viewPath . '.low-stock', [
+
+        return view($this->viewPath . '.index', [
             'items' => $items,
+            'categories' => $categories,
             'resourceName' => $this->resourceName
         ]);
     }
@@ -140,18 +143,29 @@ class MaterialController extends BaseController
     public function byCategory(Request $request)
     {
         $category = $request->input('category');
-        $items = $this->repository->getByCategory($category);
+        
+        // Handle null category by providing a default or empty string
+        $category = $category ?? '';  
+        $categories = $this->repository->getUniqueCategories();
+        
+        if ($category) {
+            $items = $this->repository->getByCategory($category);
+        } else {
+            $items = $this->repository->all();
+        }
         
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
                 'data' => $items,
+                'categories' => $categories,
                 'category' => $category
             ]);
         }
         
         return view($this->viewPath . '.by-category', [
             'items' => $items,
+            'categories' => $categories,
             'category' => $category,
             'resourceName' => $this->resourceName
         ]);

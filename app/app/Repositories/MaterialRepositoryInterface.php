@@ -28,4 +28,11 @@ interface MaterialRepositoryInterface extends BaseRepositoryInterface
      * @return mixed
      */
     public function getByCategory(string $category);
+    
+    /**
+     * Get all unique categories
+     * 
+     * @return array
+     */
+    public function getUniqueCategories();
 }

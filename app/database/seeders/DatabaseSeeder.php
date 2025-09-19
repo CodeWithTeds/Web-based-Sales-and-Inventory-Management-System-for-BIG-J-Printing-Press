@@ -23,9 +23,10 @@ class DatabaseSeeder extends Seeder
             ]);
         }
         
-        // Call AdminSeeder to create admin user
+        // Call AdminSeeder to create admin user and seed materials
         $this->call([
             AdminSeeder::class,
+            MaterialSeeder::class,
         ]);
     }
 }
