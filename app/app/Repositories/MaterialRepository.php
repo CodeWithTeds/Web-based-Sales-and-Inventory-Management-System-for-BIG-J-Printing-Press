@@ -76,4 +76,25 @@ class MaterialRepository extends BaseRepository implements MaterialRepositoryInt
     {
         return $this->model->select('category')->distinct()->orderBy('category')->pluck('category')->toArray();
     }
+
+    public function stockOut(int $id, float $quantity)
+    {
+        $material = $this->find($id);
+        if ($quantity <= 0) {
+            return $material;
+        }
+        if ((float) $material->quantity < $quantity) {
+            throw new \RuntimeException('INSUFFICIENT_STOCK:' . json_encode([
+                [
+                    'name' => $material->name,
+                    'required' => $quantity,
+                    'available' => (float) $material->quantity,
+                    'unit' => $material->unit ?? '',
+                ]
+            ]));
+        }
+        $material->quantity = (float) $material->quantity - $quantity;
+        $material->save();
+        return $material;
+    }
 }

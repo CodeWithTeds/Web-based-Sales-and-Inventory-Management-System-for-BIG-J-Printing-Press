@@ -21,11 +21,11 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
      * Get products by category
      *
      * @param string $category
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
     public function getByCategory(string $category)
     {
-        return $this->model->where('category', $category)->get();
+        return $this->model->where('category', $category)->paginate(15)->withQueryString();
     }
 
     /**
@@ -91,5 +91,31 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
         $product = $this->find($productId);
         $product->materials()->detach($materialId);
         return true;
+    }
+
+    // Aggregates
+    public function countAll(): int
+    {
+        return (int) $this->model->count();
+    }
+
+    public function countActive(): int
+    {
+        return (int) $this->model->where('active', true)->count();
+    }
+
+    public function countInactive(): int
+    {
+        return (int) $this->model->where('active', false)->count();
+    }
+
+    public function sumPrice(): float
+    {
+        return (float) $this->model->sum('price');
+    }
+
+    public function avgPrice(): float
+    {
+        return (float) $this->model->avg('price');
     }
 }

@@ -32,6 +32,86 @@
             </div>
             @endif
 
+            <!-- Metrics Cards -->
+            @isset($metrics)
+            <div class="mb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <!-- Total Products -->
+                <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 p-4 text-white shadow-md">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs uppercase tracking-wider text-indigo-100">Total Products</p>
+                            <p class="mt-1 text-2xl font-semibold">{{ number_format($metrics['total_products'] ?? 0) }}</p>
+                        </div>
+                        <div class="opacity-70">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Products -->
+                <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 p-4 text-white shadow-md">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs uppercase tracking-wider text-emerald-100">Active</p>
+                            <p class="mt-1 text-2xl font-semibold">{{ number_format($metrics['active_products'] ?? 0) }}</p>
+                        </div>
+                        <div class="opacity-70">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inactive Products -->
+                <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-500 to-slate-600 p-4 text-white shadow-md">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs uppercase tracking-wider text-slate-100">Inactive</p>
+                            <p class="mt-1 text-2xl font-semibold">{{ number_format($metrics['inactive_products'] ?? 0) }}</p>
+                        </div>
+                        <div class="opacity-70">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Price -->
+                <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 p-4 text-white shadow-md">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs uppercase tracking-wider text-amber-100">Total Price</p>
+                            <p class="mt-1 text-2xl font-semibold">₱{{ number_format($metrics['total_price'] ?? 0, 2) }}</p>
+                        </div>
+                        <div class="opacity-70">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.343-4 3s1.79 3 4 3 4 1.343 4 3" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Average Price -->
+                <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-fuchsia-500 to-fuchsia-600 p-4 text-white shadow-md">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs uppercase tracking-wider text-fuchsia-100">Avg. Price</p>
+                            <p class="mt-1 text-2xl font-semibold">₱{{ number_format($metrics['avg_price'] ?? 0, 2) }}</p>
+                        </div>
+                        <div class="opacity-70">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v18h18" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endisset
+
             <!-- Filters & Search -->
             <div class="mb-5 bg-white rounded-lg shadow-sm overflow-hidden">
                 <div class="p-4">

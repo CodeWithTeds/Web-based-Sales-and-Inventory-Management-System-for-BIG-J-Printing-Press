@@ -6,6 +6,7 @@ use App\Http\Requests\MaterialRequest;
 use App\Http\Requests\StockInRequest;
 use App\Http\Requests\MaterialRequestFormRequest;
 use App\Repositories\MaterialRepositoryInterface;
+use App\Services\MaterialService;
 use Illuminate\Http\Request;
 use App\Models\Material;
 use Illuminate\Http\JsonResponse as HttpJsonResponse;
@@ -14,13 +15,14 @@ use App\Traits\ResponseHelpers;
 class MaterialController extends BaseController
 {
     use ResponseHelpers;
+
     /**
      * MaterialController constructor.
-     *
-     * @param MaterialRepositoryInterface $repository
      */
-    public function __construct(MaterialRepositoryInterface $repository)
-    {
+    public function __construct(
+        /* Type removed to avoid conflict with parent */ MaterialRepositoryInterface $repository,
+        protected MaterialService $service
+    ) {
         $this->repository = $repository;
         $this->viewPath = 'materials';
         $this->routePrefix = 'materials';
@@ -36,8 +38,6 @@ class MaterialController extends BaseController
      */
     protected function validateRequest(Request $request, $id = null)
     {
-        // Using the form request validation in the controller methods directly
-        // This method is kept for compatibility with BaseController
         return $request->all();
     }
 
@@ -72,7 +72,7 @@ class MaterialController extends BaseController
      */
     public function showStockInForm($id)
     {
-        $item = $this->repository->find($id);
+        $item = $this->service->stockInFormData($id);
         
         if (request()->wantsJson()) {
             return $this->successResponse($item);
@@ -95,7 +95,7 @@ class MaterialController extends BaseController
     {
         $validated = $request->validated();
 
-        $this->repository->stockIn($id, $validated['quantity'], $validated['notes'] ?? null);
+        $this->service->stockIn($id, $validated['quantity'], $validated['notes'] ?? null);
         
         $message = 'Stock added successfully to ' . $this->resourceName;
         return $this->respondWith(null, $message, $this->routePrefix . '.index');
@@ -108,19 +108,23 @@ class MaterialController extends BaseController
      */
     public function index()
     {
-        $items = $this->repository->paginate();
-        $categories = $this->repository->getUniqueCategories();
+        $data = $this->service->indexData();
+        $items = $data['items'];
+        $categories = $data['categories'];
+        $metrics = $data['metrics'] ?? null;
 
         if (request()->wantsJson()) {
             return $this->successResponse([
                 'items' => $items,
-                'categories' => $categories
+                'categories' => $categories,
+                'metrics' => $metrics,
             ]);
         }
 
         return view($this->viewPath . '.index', [
             'items' => $items,
             'categories' => $categories,
+            'metrics' => $metrics,
             'resourceName' => $this->resourceName
         ]);
     }
@@ -133,29 +137,20 @@ class MaterialController extends BaseController
      */
     public function byCategory(Request $request)
     {
-        $category = $request->input('category');
-        
-        // Handle null category by providing a default or empty string
-        $category = $category ?? '';  
-        $categories = $this->repository->getUniqueCategories();
-        
-        if ($category) {
-            $items = $this->repository->getByCategory($category);
-        } else {
-            $items = $this->repository->all();
-        }
+        $category = $request->input('category') ?? '';
+        $data = $this->service->byCategoryData($category);
         
         if ($request->wantsJson()) {
             return $this->successResponse([
-                'items' => $items,
-                'categories' => $categories,
+                'items' => $data['items'],
+                'categories' => $data['categories'],
                 'category' => $category
             ]);
         }
         
         return view($this->viewPath . '.by-category', [
-            'items' => $items,
-            'categories' => $categories,
+            'items' => $data['items'],
+            'categories' => $data['categories'],
             'category' => $category,
             'resourceName' => $this->resourceName
         ]);
@@ -168,15 +163,36 @@ class MaterialController extends BaseController
      */
     public function showRequestForm()
     {
-        $materials = $this->repository->all();
+        $data = $this->service->requestFormData();
         
         if (request()->wantsJson()) {
-            return $this->successResponse($materials);
+            return $this->successResponse($data['materials']);
         }
         
         return view($this->viewPath . '.request-form', [
-            'materials' => $materials,
+            'materials' => $data['materials'],
             'resourceName' => $this->resourceName
+        ]);
+    }
+
+    /**
+     * Display low-stock materials report.
+     *
+     * @return \Illuminate\Http\Response|HttpJsonResponse
+     */
+    public function lowStock()
+    {
+        $data = $this->service->lowStockData();
+
+        if (request()->wantsJson()) {
+            return $this->successResponse([
+                'items' => $data['items'],
+            ]);
+        }
+
+        return view($this->viewPath . '.low-stock', [
+            'items' => $data['items'],
+            'resourceName' => $this->resourceName,
         ]);
     }
 
@@ -190,11 +206,7 @@ class MaterialController extends BaseController
     {
         $validated = $request->validated();
 
-        // Here you would typically save the request to a database table
-        // For now, we'll just redirect with a success message
-        
-        $material = $this->repository->find($validated['material_id']);
-        $message = 'Material request for ' . $material->name . ' submitted successfully';
+        $message = $this->service->submitRequest($validated['material_id']);
         
         return $this->respondWith(null, $message, $this->routePrefix . '.index');
     }

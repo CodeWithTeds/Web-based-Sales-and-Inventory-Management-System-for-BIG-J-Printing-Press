@@ -35,4 +35,13 @@ interface MaterialRepositoryInterface extends BaseRepositoryInterface
      * @return array
      */
     public function getUniqueCategories();
+
+    /**
+     * Deduct stock from a material (stock out). Should be used inside a DB transaction.
+     *
+     * @param int $id
+     * @param float $quantity
+     * @return mixed
+     */
+    public function stockOut(int $id, float $quantity);
 }

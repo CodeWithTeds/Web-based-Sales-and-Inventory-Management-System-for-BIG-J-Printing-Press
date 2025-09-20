@@ -47,4 +47,29 @@ interface ProductRepositoryInterface extends BaseRepositoryInterface
      * @return bool
      */
     public function removeMaterial(int $productId, int $materialId);
+
+    /**
+     * Count all products
+     */
+    public function countAll(): int;
+
+    /**
+     * Count active products
+     */
+    public function countActive(): int;
+
+    /**
+     * Count inactive products
+     */
+    public function countInactive(): int;
+
+    /**
+     * Sum of all product prices
+     */
+    public function sumPrice(): float;
+
+    /**
+     * Average product price
+     */
+    public function avgPrice(): float;
 }

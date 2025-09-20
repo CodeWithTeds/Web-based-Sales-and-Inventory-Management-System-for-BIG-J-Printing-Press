@@ -24,28 +24,30 @@
                             <p class="text-sm font-medium">{{ $item['name'] }}</p>
                             <p class="text-xs text-gray-500">₱{{ number_format($item['price'], 2) }}</p>
                         </div>
-                        <form method="POST" action="{{ route('admin.pos.remove', $item['id']) }}" hx-post="{{ route('admin.pos.remove', $item['id']) }}" hx-target="#pos-cart" hx-swap="outerHTML">
-                            @csrf
-                            @method('DELETE')
-                            <button class="text-gray-400 hover:text-red-500" title="Remove">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </form>
-                    </div>
-                    <div class="mt-2 flex items-center">
-                        <form method="POST" action="{{ route('admin.pos.decrement', $item['id']) }}" hx-post="{{ route('admin.pos.decrement', $item['id']) }}" hx-target="#pos-cart" hx-swap="outerHTML">
-                            @csrf
-                            @method('PATCH')
-                            <button class="h-7 w-7 flex items-center justify-center rounded-l bg-gray-100 hover:bg-gray-200">-</button>
-                        </form>
-                        <input type="text" readonly class="h-7 w-12 text-center border-t border-b border-gray-200" value="{{ $item['qty'] }}" />
-                        <form method="POST" action="{{ route('admin.pos.increment', $item['id']) }}" hx-post="{{ route('admin.pos.increment', $item['id']) }}" hx-target="#pos-cart" hx-swap="outerHTML">
-                            @csrf
-                            @method('PATCH')
-                            <button class="h-7 w-7 flex items-center justify-center rounded-r bg-gray-100 hover:bg-gray-200">+</button>
-                        </form>
+                        <div class="flex items-center space-x-2">
+                            <form method="POST" action="{{ route('admin.pos.remove', $item['id']) }}" hx-delete="{{ route('admin.pos.remove', $item['id']) }}" hx-target="#pos-cart" hx-swap="outerHTML">
+                                @csrf
+                                @method('DELETE')
+                                <button class="h-7 w-7 flex items-center justify-center rounded bg-red-100 hover:bg-red-200">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </form>
+                            <div class="mt-2 flex items-center">
+                                <form method="POST" action="{{ route('admin.pos.decrement', $item['id']) }}" hx-patch="{{ route('admin.pos.decrement', $item['id']) }}" hx-target="#pos-cart" hx-swap="outerHTML">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button class="h-7 w-7 flex items-center justify-center rounded-l bg-gray-100 hover:bg-gray-200">-</button>
+                                </form>
+                                <input type="text" readonly class="h-7 w-12 text-center border-t border-b border-gray-200" value="{{ $item['qty'] }}" />
+                                <form method="POST" action="{{ route('admin.pos.increment', $item['id']) }}" hx-post="{{ route('admin.pos.increment', $item['id']) }}" hx-target="#pos-cart" hx-swap="outerHTML">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button class="h-7 w-7 flex items-center justify-center rounded-r bg-gray-100 hover:bg-gray-200">+</button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -62,11 +64,11 @@
 
         <div class="mt-3">
             <label for="customer_name" class="block text-sm text-gray-700 mb-1">Customer Name</label>
-            <input id="customer_name" name="customer_name" type="text" class="w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" form="pos-checkout-form" placeholder="Enter customer name" required>
+            <input id="customer_name" name="customer_name" type="text" class="w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" form="pos-checkout-form" placeholder="Enter customer name (optional)">
         </div>
 
         <div class="mt-3 flex items-center gap-2">
-            <form id="pos-checkout-form" method="POST" action="{{ route('admin.pos.checkout') }}" hx-post="{{ route('admin.pos.checkout') }}" hx-target="#pos-cart" hx-swap="outerHTML">
+            <form id="pos-checkout-form" method="POST" action="{{ route('admin.pos.checkout') }}" hx-post="{{ route('admin.pos.checkout') }}" hx-include="#customer_name" hx-target="#pos-cart" hx-swap="outerHTML">
                 @csrf
                 <button class="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700" @disabled(empty($cart))>
                     Checkout
@@ -83,10 +85,11 @@
         @php($flashSuccess = $success ?? session('success'))
         @if (!empty($flashSuccess))
             <div class="mt-3 text-green-600 text-sm">{{ $flashSuccess }}
-                @isset($orderId)
-                    <a href="{{ route('admin.pos.receipt', $orderId) }}" class="ml-2 underline text-indigo-600 hover:text-indigo-800">View Receipt</a>
-                    <a href="{{ route('admin.pos.receipt.download', $orderId) }}" class="ml-2 underline text-indigo-600 hover:text-indigo-800">Download</a>
-                @endisset
+                @php($oid = $orderId ?? session('orderId'))
+                @if (!empty($oid))
+                    <a href="{{ route('admin.pos.receipt', $oid) }}" class="ml-2 underline text-indigo-600 hover:text-indigo-800">View Receipt</a>
+                    <a href="{{ route('admin.pos.receipt.download', $oid) }}" class="ml-2 underline text-indigo-600 hover:text-indigo-800">Download PDF</a>
+                @endif
             </div>
         @endif
         @isset($error)
