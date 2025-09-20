@@ -4,9 +4,10 @@ use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 use App\Http\Controllers\TestController;
 
-// Include materials and products routes
+// Include materials, products, and POS routes
 require __DIR__.'/materials.php';
 require __DIR__.'/products.php';
+require __DIR__.'/pos.php';
 
 Route::get('/', function () {
     return view('landing');
@@ -29,9 +30,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard', ['message' => 'Admin Dashboard']);
     })->name('admin.dashboard');
-
-    // POS page
-    Route::view('/pos', 'admin.pos')->name('admin.pos');
+    
 });
 
 // Staff routes
