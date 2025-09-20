@@ -28,6 +28,10 @@ class ProductRequest extends FormRequest
             'price' => 'required|numeric|min:0',
             'active' => 'boolean',
             'notes' => 'nullable|string',
+            'material_ids' => 'nullable|array',
+            'material_ids.*' => 'exists:materials,id',
+            'quantities' => 'nullable|array',
+            'quantities.*' => 'numeric|min:0.01',
         ];
 
         // Add image validation only for new products or when updating with a new image

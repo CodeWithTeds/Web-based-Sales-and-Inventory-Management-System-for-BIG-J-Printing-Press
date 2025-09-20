@@ -57,7 +57,7 @@ class Product extends Model
         $totalCost = 0;
 
         foreach ($this->materials as $material) {
-            $totalCost += $material->price * $material->pivot->quantity_required;
+            $totalCost += (float) $material->unit_price * (float) $material->pivot->quantity;
         }
 
         return $totalCost;

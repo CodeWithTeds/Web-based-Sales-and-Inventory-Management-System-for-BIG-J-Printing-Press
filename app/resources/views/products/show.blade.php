@@ -12,7 +12,7 @@
                     <div class="flex justify-between items-start mb-6">
                         <h3 class="text-lg font-semibold">{{ $item->name }}</h3>
                         <div class="flex space-x-2">
-                            <a href="{{ route('products.materials', $item->id) }}" class="inline-flex items-center px-3 py-1.5 bg-indigo-600 border border-transparent rounded-md font-medium text-xs text-white uppercase tracking-wider hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                            <a href="{{ route('products.materials.form', ['product' => $item->id]) }}" class="inline-flex items-center px-3 py-1.5 bg-indigo-600 border border-transparent rounded-md font-medium text-xs text-white uppercase tracking-wider hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                 </svg>
@@ -131,10 +131,10 @@
                                         @foreach($item->materials as $material)
                                         <tr class="hover:bg-gray-50 transition-colors duration-150 ease-in-out">
                                             <td class="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">{{ $material->name }}</td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{{ $material->pivot->quantity_required }}</td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{{ $material->pivot->unit }}</td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{{ $material->pivot->quantity }}</td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{{ $material->unit }}</td>
                                             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">₱{{ number_format($material->unit_price, 2) }}</td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">₱{{ number_format($material->unit_price * $material->pivot->quantity_required, 2) }}</td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">₱{{ number_format($material->unit_price * $material->pivot->quantity, 2) }}</td>
                                             <td class="px-3 py-2 text-sm text-gray-500">{{ $material->pivot->notes ?: '-' }}</td>
                                         </tr>
                                         @endforeach
@@ -151,7 +151,7 @@
                         @else
                             <div class="bg-gray-50 rounded-md p-4 text-center">
                                 <p class="text-gray-500">No materials have been added to this product yet.</p>
-                                <a href="{{ route('products.materials', $item->id) }}" class="mt-2 inline-flex items-center px-3 py-1.5 bg-indigo-600 border border-transparent rounded-md font-medium text-xs text-white uppercase tracking-wider hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                <a href="{{ route('products.materials.form', ['product' => $item->id]) }}" class="inline-flex items-center px-3 py-1.5 bg-indigo-600 border border-transparent rounded-md font-medium text-xs text-white uppercase tracking-wider hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                     </svg>

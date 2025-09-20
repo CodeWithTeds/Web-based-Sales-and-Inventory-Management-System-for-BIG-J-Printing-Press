@@ -4,7 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Product;
 
-interface ProductRepositoryInterface extends RepositoryInterface
+interface ProductRepositoryInterface extends BaseRepositoryInterface
 {
     /**
      * Get products by category

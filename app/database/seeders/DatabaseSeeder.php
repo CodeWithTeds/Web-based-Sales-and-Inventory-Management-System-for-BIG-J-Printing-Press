@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Database\Seeders\ProductSeeder;
+use Database\Seeders\MaterialsSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -23,10 +25,12 @@ class DatabaseSeeder extends Seeder
             ]);
         }
         
-        // Call AdminSeeder to create admin user and seed materials
+        // Call seeders to create admin user, products and materials
         $this->call([
             AdminSeeder::class,
             MaterialSeeder::class,
+            MaterialsSeeder::class,
+            ProductSeeder::class,
         ]);
     }
 }

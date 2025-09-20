@@ -73,6 +73,23 @@
                             <x-input-error :messages="$errors->get('notes')" class="mt-2" />
                         </div>
 
+                        <!-- Materials -->
+                        <div class="mt-4">
+                            <x-input-label :value="__('Materials')" />
+                            <div class="mt-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                                @foreach($materials as $material)
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="material_{{ $material->id }}" name="material_ids[]" value="{{ $material->id }}" data-unit="{{ $material->unit }}" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                    <label for="material_{{ $material->id }}" class="ml-2 text-sm text-gray-700">{{ $material->name }} ({{ $material->quantity }} {{ $material->unit }} available)</label>
+                                </div>
+                                @endforeach
+                            </div>
+
+                            <x-input-error :messages="$errors->get('material_ids')" class="mt-2" />
+                        </div>
+
+
+
                         <div class="flex items-center justify-end mt-4">
                             <a href="{{ route('products.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-400 focus:bg-gray-400 active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 mr-2">
                                 {{ __('Cancel') }}
@@ -86,4 +103,32 @@
             </div>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const materialCheckboxes = document.querySelectorAll('input[name="material_ids[]"]');
+            
+            // Add hidden input for each selected material with default quantity 1
+            materialCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const materialId = this.value;
+                    const hiddenInputName = `quantities[${materialId}]`;
+                    
+                    // Remove existing hidden input for this material if exists
+                    const existingInput = document.querySelector(`input[name="${hiddenInputName}"]`);
+                    if (existingInput) {
+                        existingInput.remove();
+                    }
+                    
+                    // If checkbox is checked, create hidden input with default quantity 1
+                    if (this.checked) {
+                        const hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = hiddenInputName;
+                        hiddenInput.value = '1'; // Default quantity
+                        document.querySelector('form').appendChild(hiddenInput);
+                    }
+                });
+            });
+        });
+    </script>
 </x-app-layout>

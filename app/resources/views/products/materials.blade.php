@@ -74,7 +74,7 @@
                                                         {{ $material->pivot->quantity }} {{ $material->unit }}
                                                     </td>
                                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                                                        ₱{{ number_format($material->price * $material->pivot->quantity, 2) }}
+                                                        ₱{{ number_format($material->unit_price * $material->pivot->quantity, 2) }}
                                                     </td>
                                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                                                         <form action="{{ route('products.materials.remove', [$product->id, $material->id]) }}" method="POST" class="inline">
@@ -95,7 +95,7 @@
                                                 <td colspan="2" class="px-4 py-3 text-right text-sm font-medium text-gray-900">Total Material Cost:</td>
                                                 <td colspan="2" class="px-4 py-3 text-sm font-bold text-gray-900">
                                                     ₱{{ number_format($product->materials->sum(function($material) {
-                                                        return $material->price * $material->pivot->quantity;
+                                                        return $material->unit_price * $material->pivot->quantity;
                                                     }), 2) }}
                                                 </td>
                                             </tr>
@@ -116,29 +116,30 @@
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <h3 class="text-lg font-medium text-gray-900 mb-4">Add Material</h3>
                             
-                            <form method="POST" action="{{ route('products.materials.add', $product->id) }}">
+                            <form id="add-material-form" method="POST" action="{{ route('products.materials.add', $product->id) }}">
                                 @csrf
                                 
                                 <div class="mb-4">
-                                    <x-input-label for="material_id" :value="__('Material')" />
-                                    <select id="material_id" name="material_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                        <option value="">Select a material</option>
+                                    <x-input-label :value="__('Materials')" />
+                                    <div class="mt-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                                         @foreach($availableMaterials as $material)
-                                            <option value="{{ $material->id }}" data-unit="{{ $material->unit }}">{{ $material->name }} ({{ $material->quantity }} {{ $material->unit }} available)</option>
+                                        <div class="flex items-center">
+                                            <input type="checkbox" id="material_{{ $material->id }}" name="material_ids[]" value="{{ $material->id }}" data-unit="{{ $material->unit }}" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                            <label for="material_{{ $material->id }}" class="ml-2 text-sm text-gray-700">{{ $material->name }} ({{ $material->quantity }} {{ $material->unit }} available)</label>
+                                        </div>
                                         @endforeach
-                                    </select>
-                                    @error('material_id')
+                                    </div>
+
+                                    @error('material_ids')
                                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                     @enderror
                                 </div>
 
-                                <div class="mb-4">
-                                    <x-input-label for="quantity" :value="__('Quantity Required')" />
-                                    <div class="flex items-center mt-1">
-                                        <x-text-input id="quantity" class="block w-full" type="number" name="quantity" step="0.01" min="0.01" :value="old('quantity')" required />
-                                        <span id="unit-display" class="ml-2 text-gray-500">units</span>
-                                    </div>
-                                    @error('quantity')
+                                <div style="display:none;">
+                                    @error('quantities')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                    @error('quantities.*')
                                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                     @enderror
                                 </div>
@@ -158,13 +159,32 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const materialSelect = document.getElementById('material_id');
-            const unitDisplay = document.getElementById('unit-display');
+            const materialCheckboxes = document.querySelectorAll('input[name="material_ids[]"]');
+            const addMaterialForm = document.getElementById('add-material-form');
             
-            materialSelect.addEventListener('change', function() {
-                const selectedOption = this.options[this.selectedIndex];
-                const unit = selectedOption.getAttribute('data-unit') || 'units';
-                unitDisplay.textContent = unit;
+            if (!addMaterialForm) return;
+            
+            // Add hidden input for each selected material with default quantity 1
+            materialCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const materialId = this.value;
+                    const hiddenInputName = `quantities[${materialId}]`;
+                    
+                    // Remove existing hidden input for this material if exists (within the add form only)
+                    const existingInput = addMaterialForm.querySelector(`input[name="${hiddenInputName}"]`);
+                    if (existingInput) {
+                        existingInput.remove();
+                    }
+                    
+                    // If checkbox is checked, create hidden input with default quantity 1
+                    if (this.checked) {
+                        const hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = hiddenInputName;
+                        hiddenInput.value = '1'; // Default quantity
+                        addMaterialForm.appendChild(hiddenInput);
+                    }
+                });
             });
         });
     </script>

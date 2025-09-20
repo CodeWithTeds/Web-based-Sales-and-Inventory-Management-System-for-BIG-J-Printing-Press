@@ -58,7 +58,7 @@ class ProductController extends BaseController
     public function create()
     {
         $materials = app(\App\Repositories\MaterialRepositoryInterface::class)->all();
-        
+
         if (request()->wantsJson()) {
             return response()->json([
                 'success' => true,
@@ -84,23 +84,42 @@ class ProductController extends BaseController
     {
         // If using a FormRequest, validation is already handled
         $validated = $request instanceof ProductRequest ? $request->validated() : $this->validateRequest($request);
-        
+
         // Handle image upload if present
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
             $path = $request->file('image')->store('products', 'public');
             $validated['image_path'] = $path;
         }
-        
+
         $item = $this->repository->create($validated);
 
-        // Handle materials if provided
-        if ($request->has('materials') && is_array($request->materials)) {
+        // Handle materials if provided via material_ids and optional quantities arrays
+        if ($request->has('material_ids') && is_array($request->material_ids)) {
+            $materialIds = $request->material_ids;
+            $quantities = ($request->has('quantities') && is_array($request->quantities))
+                ? $request->quantities
+                : array_fill_keys($materialIds, 1);
+
+            foreach ($materialIds as $materialId) {
+                $quantity = isset($quantities[$materialId]) ? (float) $quantities[$materialId] : 1.0;
+                if ($quantity <= 0) { // enforce minimum sensible quantity
+                    $quantity = 1.0;
+                }
+                $this->repository->addMaterial(
+                    $item->id,
+                    (int) $materialId,
+                    $quantity
+                );
+            }
+        }
+        // Handle materials if provided in the old format (for API compatibility)
+        elseif ($request->has('materials') && is_array($request->materials)) {
             foreach ($request->materials as $material) {
                 if (isset($material['id'], $material['quantity'])) {
                     $this->repository->addMaterial(
                         $item->id,
-                        $material['id'],
-                        $material['quantity']
+                        (int) $material['id'],
+                        (float) $material['quantity']
                     );
                 }
             }
@@ -123,11 +142,11 @@ class ProductController extends BaseController
     {
         $item = $this->repository->find($id);
         $item->load('materials');
-        
+
         if (request()->wantsJson()) {
             return $this->successResponse($item);
         }
-        
+
         return view($this->viewPath . '.show', [
             'item' => $item,
             'resourceName' => $this->resourceName
@@ -145,14 +164,14 @@ class ProductController extends BaseController
         $item = $this->repository->find($id);
         $item->load('materials');
         $materials = app(\App\Repositories\MaterialRepositoryInterface::class)->all();
-        
+
         if (request()->wantsJson()) {
             return $this->successResponse([
                 'item' => $item,
                 'materials' => $materials
             ]);
         }
-        
+
         return view($this->viewPath . '.edit', [
             'item' => $item,
             'materials' => $materials,
@@ -172,18 +191,18 @@ class ProductController extends BaseController
         // If using a FormRequest, validation is already handled
         $validated = $request instanceof ProductRequest ? $request->validated() : $this->validateRequest($request, $id);
         $item = $this->repository->find($id);
-        
+
         // Handle image upload if present
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
             // Delete old image if exists
             if ($item->image_path) {
                 Storage::disk('public')->delete($item->image_path);
             }
-            
+
             $path = $request->file('image')->store('products', 'public');
             $validated['image_path'] = $path;
         }
-        
+
         if ($item instanceof \Illuminate\Database\Eloquent\Model) {
             $this->repository->update($item, $validated);
         } else {
@@ -207,12 +226,12 @@ class ProductController extends BaseController
     public function destroy($id)
     {
         $item = $this->repository->find($id);
-        
+
         // Delete image if exists
         if ($item && $item->image_path) {
             Storage::disk('public')->delete($item->image_path);
         }
-        
+
         if ($item instanceof \Illuminate\Database\Eloquent\Model) {
             $this->repository->delete($item);
         } else {
@@ -225,7 +244,7 @@ class ProductController extends BaseController
             $this->routePrefix . '.index'
         );
     }
-    
+
     /**
      * Display products by category.
      *
@@ -235,13 +254,13 @@ class ProductController extends BaseController
     public function byCategory(string $category = null)
     {
         $categories = $this->repository->getUniqueCategories();
-        
+
         if ($category) {
             $items = $this->repository->getByCategory($category);
         } else {
             $items = $this->repository->all();
         }
-        
+
         if (request()->wantsJson()) {
             return $this->successResponse([
                 'items' => $items,
@@ -249,7 +268,7 @@ class ProductController extends BaseController
                 'categories' => $categories
             ]);
         }
-        
+
         return view($this->viewPath . '.by-category', [
             'items' => $items,
             'category' => $category,
@@ -257,7 +276,7 @@ class ProductController extends BaseController
             'resourceName' => $this->resourceName
         ]);
     }
-    
+
     /**
      * Show the form for managing materials for a product.
      *
@@ -269,21 +288,22 @@ class ProductController extends BaseController
         $item = $this->repository->find($id);
         $item->load('materials');
         $allMaterials = app(\App\Repositories\MaterialRepositoryInterface::class)->all();
-        
+
         if (request()->wantsJson()) {
             return $this->successResponse([
                 'item' => $item,
                 'allMaterials' => $allMaterials
             ]);
         }
-        
+
         return view($this->viewPath . '.materials', [
-            'item' => $item,
-            'allMaterials' => $allMaterials,
+            // Align with view variable names
+            'product' => $item,
+            'availableMaterials' => $allMaterials,
             'resourceName' => $this->resourceName
         ]);
     }
-    
+
     /**
      * Add material to a product.
      *
@@ -294,24 +314,38 @@ class ProductController extends BaseController
     public function addMaterial(Request $request, string $id)
     {
         $request->validate([
-            'material_id' => 'required|exists:materials,id',
-            'quantity' => 'required|numeric|min:0.01'
+            'material_ids' => 'required|array',
+            'material_ids.*' => 'exists:materials,id',
+            'quantities' => 'required|array',
+            'quantities.*' => 'required|numeric|min:0.01'
         ]);
-        
-        $product = $this->repository->addMaterial(
-            $id,
-            $request->material_id,
-            $request->quantity
-        );
-        
+
+        $product = null;
+        $materialIds = $request->material_ids;
+        $quantities = $request->quantities;
+
+        // Process each selected material
+        foreach ($quantities as $materialId => $quantity) {
+            // Skip if material wasn't selected in the dropdown
+            if (!in_array($materialId, $materialIds)) {
+                continue;
+            }
+
+            $product = $this->repository->addMaterial(
+                $id,
+                $materialId,
+                $quantity
+            );
+        }
+
         return $this->respondWith(
             $product,
-            'Material added to product successfully',
-            $this->routePrefix . '.materials',
-            ['id' => $id]
+            'Materials added to product successfully',
+            'products.materials.form',
+            ['product' => $id]
         );
     }
-    
+
     /**
      * Remove material from a product.
      *
@@ -322,12 +356,12 @@ class ProductController extends BaseController
     public function removeMaterial(string $id, string $materialId)
     {
         $this->repository->removeMaterial($id, $materialId);
-        
+
         return $this->respondWith(
             null,
             'Material removed from product successfully',
-            $this->routePrefix . '.materials',
-            ['id' => $id]
+            'products.materials.form',
+            ['product' => $id]
         );
     }
 }
