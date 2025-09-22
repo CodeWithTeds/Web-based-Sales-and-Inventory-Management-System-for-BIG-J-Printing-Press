@@ -37,12 +37,20 @@
         </div>
 
         <div class="sep">******************************</div>
-        <div class="section-title">CASH RECEIPT</div>
+        <div class="section-title">
+            @php $rp = $routePrefix ?? 'admin.pos'; @endphp
+            {{ $rp === 'client.ordering' ? 'ONLINE RECEIPT' : 'CASH RECEIPT' }}
+        </div>
         <div class="sep">******************************</div>
 
         <div class="muted" style="text-align:center;margin-bottom:8px;">#{{ $order->order_number }} • {{ $order->created_at->format('Y-m-d H:i') }}</div>
         @if(!empty($order->customer_name))
             <div class="muted" style="text-align:center;margin-bottom:8px;">Customer: {{ $order->customer_name }}</div>
+        @endif
+        @if(($routePrefix ?? 'admin.pos') === 'client.ordering')
+            <div class="muted" style="text-align:center;margin-bottom:8px;">Payment: GCash (PayMongo Checkout)</div>
+        @else
+            <div class="muted" style="text-align:center;margin-bottom:8px;">Payment: Cash</div>
         @endif
 
         <table>

@@ -14,6 +14,7 @@ use Dompdf\Dompdf;
 use Dompdf\Options;
 use App\Traits\HandlesPosErrors;
 use Illuminate\Support\Facades\Route as RouteFacade;
+use Illuminate\Support\Facades\Http;
 
 class PosController extends Controller
 {
@@ -128,6 +129,85 @@ class PosController extends Controller
     {
         $validated = $request->validated();
 
+        $ctx = $this->getContext();
+        if ($ctx['routePrefix'] === 'client.ordering') {
+            // Online ordering: Start PayMongo Checkout (GCash only)
+            $cart = $this->cart->all();
+            if (empty($cart)) {
+                return $this->respondCheckoutFailure(['error' => 'Cart is empty.'], $request);
+            }
+
+            $lineItems = [];
+            foreach ($cart as $item) {
+                if (!isset($item['name'], $item['qty'], $item['price'])) {
+                    continue;
+                }
+                $lineItems[] = [
+                    'name' => (string) $item['name'],
+                    'quantity' => (int) $item['qty'],
+                    'amount' => (int) round(((float) $item['price']) * 100), // amount in centavos
+                    'currency' => 'PHP',
+                ];
+            }
+
+            if (empty($lineItems)) {
+                return $this->respondCheckoutFailure(['error' => 'Cart has no valid items.'], $request);
+            }
+
+            $successUrl = route('client.ordering.paymongo.success');
+            $cancelUrl = route('client.ordering.paymongo.cancel');
+            $description = 'Online Order via PayMongo';
+            $reference = 'ORD-' . now()->format('YmdHis') . '-' . random_int(1000, 9999);
+
+            $payload = [
+                'data' => [
+                    'attributes' => [
+                        'line_items' => $lineItems,
+                        'payment_method_types' => ['gcash'],
+                        'success_url' => $successUrl,
+                        'cancel_url' => $cancelUrl,
+                        'description' => $description,
+                        'send_email_receipt' => false,
+                        'show_line_items' => true,
+                        'show_description' => true,
+                        'reference_number' => $reference,
+                    ],
+                ],
+            ];
+
+            try {
+                $response = Http::withBasicAuth(config('services.paymongo.secret'), '')
+                    ->acceptJson()
+                    ->asJson()
+                    ->post(rtrim(config('services.paymongo.base_url'), '/') . '/v1/checkout_sessions', $payload);
+
+                if (!$response->successful()) {
+                    $err = $response->json('errors.0.detail') ?? $response->body();
+                    return $this->respondCheckoutFailure(['error' => 'PayMongo error: ' . $err], $request);
+                }
+
+                $data = $response->json('data');
+                $checkoutUrl = $data['attributes']['checkout_url'] ?? null;
+                $csId = $data['id'] ?? null;
+                if (!$checkoutUrl || !$csId) {
+                    return $this->respondCheckoutFailure(['error' => 'Invalid PayMongo response.'], $request);
+                }
+
+                // Persist session details to complete order after successful payment
+                session()->put('paymongo.checkout_session_id', $csId);
+                session()->put('paymongo.customer_name', $validated['customer_name'] ?? null);
+
+                if ($request->header('HX-Request')) {
+                    return response('', 204)->header('HX-Redirect', $checkoutUrl);
+                }
+
+                return redirect()->away($checkoutUrl);
+            } catch (\Throwable $e) {
+                return $this->respondCheckoutFailure(['error' => $e->getMessage()], $request);
+            }
+        }
+
+        // Admin POS checkout: process immediately
         $result = $this->checkoutService->checkout($validated);
 
         if (!$result['success']) {
@@ -177,5 +257,59 @@ class PosController extends Controller
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
+    }
+
+    // PayMongo success callback (no webhooks): verify payment then create order
+    public function paymongoSuccess(Request $request)
+    {
+        $csId = session()->get('paymongo.checkout_session_id');
+        if (!$csId) {
+            return redirect()->route('client.ordering')->with('error', 'Missing checkout session.');
+        }
+
+        try {
+            $resp = Http::withBasicAuth(config('services.paymongo.secret'), '')
+                ->acceptJson()
+                ->get(rtrim(config('services.paymongo.base_url'), '/') . '/v1/checkout_sessions/' . $csId);
+
+            if (!$resp->successful()) {
+                $err = $resp->json('errors.0.detail') ?? $resp->body();
+                return redirect()->route('client.ordering')->with('error', 'Payment verification error: ' . $err);
+            }
+
+            $payments = $resp->json('data.attributes.payments') ?? [];
+            $paid = false;
+            foreach ($payments as $p) {
+                if (($p['attributes']['status'] ?? null) === 'paid') {
+                    $paid = true;
+                    break;
+                }
+            }
+
+            if (!$paid) {
+                return redirect()->route('client.ordering')->with('error', 'Payment not completed.');
+            }
+        } catch (\Throwable $e) {
+            return redirect()->route('client.ordering')->with('error', 'Payment verification failed: ' . $e->getMessage());
+        }
+
+        $customerName = session()->pull('paymongo.customer_name');
+        session()->forget('paymongo.checkout_session_id');
+
+        $result = $this->checkoutService->checkout(['customer_name' => $customerName]);
+        if (!$result['success']) {
+            // If order creation fails, surface the error back to ordering page
+            return redirect()->route('client.ordering')->with('error', $result['error'] ?? 'Checkout failed.');
+        }
+
+        $receiptUrl = route('client.ordering.receipt', $result['order']);
+        return redirect()->to($receiptUrl);
+    }
+
+    // PayMongo cancel callback: just return to ordering page with notice
+    public function paymongoCancel()
+    {
+        session()->forget('paymongo.checkout_session_id');
+        return redirect()->route('client.ordering')->with('error', 'Payment canceled.');
     }
 }

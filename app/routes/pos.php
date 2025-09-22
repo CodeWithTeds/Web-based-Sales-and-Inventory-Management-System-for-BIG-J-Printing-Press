@@ -31,6 +31,11 @@ Route::middleware(['auth', 'role:client'])->group(function () {
 
     // Checkout & receipt
     Route::post('/ordering/checkout', [PosController::class, 'checkout'])->name('client.ordering.checkout');
+    
+    // PayMongo callbacks (no webhooks)
+    Route::get('/ordering/paymongo/success', [PosController::class, 'paymongoSuccess'])->name('client.ordering.paymongo.success');
+    Route::get('/ordering/paymongo/cancel', [PosController::class, 'paymongoCancel'])->name('client.ordering.paymongo.cancel');
+
     Route::get('/ordering/receipt/{order}', [PosController::class, 'receipt'])->name('client.ordering.receipt');
     Route::get('/ordering/receipt/{order}/download', [PosController::class, 'receiptDownload'])->name('client.ordering.receipt.download');
 });

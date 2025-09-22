@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    // PayMongo API configuration
+    'paymongo' => [
+        'secret' => env('PAYMONGO_SECRET_API_KEY'),
+        'public' => env('PAYMONGO_PUBLIC_API_KEY'),
+        // Base API URL; override via PAYMONGO_API_BASE if needed (e.g., for sandbox environments)
+        'base_url' => env('PAYMONGO_API_BASE', 'https://api.paymongo.com'),
+    ],
+
 ];

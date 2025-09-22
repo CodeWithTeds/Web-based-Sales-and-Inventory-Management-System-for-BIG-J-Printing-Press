@@ -65,6 +65,7 @@
                                 'total' => $total,
                                 'itemCount' => $itemCount,
                                 'success' => session('success'),
+                                'error' => session('error'),
                                 'routePrefix' => ($routePrefix ?? 'admin.pos')
                             ])
                         </div>
