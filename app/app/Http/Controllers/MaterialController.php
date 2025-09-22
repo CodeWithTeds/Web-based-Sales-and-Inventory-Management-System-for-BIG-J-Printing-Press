@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use App\Models\Material;
 use Illuminate\Http\JsonResponse as HttpJsonResponse;
 use App\Traits\ResponseHelpers;
+use App\Repositories\SupplierRepositoryInterface;
 
 class MaterialController extends BaseController
 {
@@ -21,12 +22,146 @@ class MaterialController extends BaseController
      */
     public function __construct(
         /* Type removed to avoid conflict with parent */ MaterialRepositoryInterface $repository,
-        protected MaterialService $service
+        protected MaterialService $service,
+        protected SupplierRepositoryInterface $suppliers,
     ) {
         $this->repository = $repository;
         $this->viewPath = 'materials';
         $this->routePrefix = 'materials';
         $this->resourceName = 'Material';
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response|HttpJsonResponse
+     */
+    public function create()
+    {
+        $suppliers = $this->suppliers->all();
+
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Create form data',
+                'resourceName' => $this->resourceName,
+                'suppliers' => $suppliers,
+            ]);
+        }
+
+        return view($this->viewPath . '.create', [
+            'resourceName' => $this->resourceName,
+            'suppliers' => $suppliers,
+        ]);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\Response|HttpJsonResponse
+     */
+    public function edit($id)
+    {
+        $item = $this->repository->find($id);
+        $suppliers = $this->suppliers->all();
+
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'item' => $item,
+                    'suppliers' => $suppliers,
+                    'resourceName' => $this->resourceName,
+                ]
+            ]);
+        }
+
+        return view($this->viewPath . '.edit', [
+            'item' => $item,
+            'suppliers' => $suppliers,
+            'resourceName' => $this->resourceName,
+        ]);
+    }
+
+    /**
+     * Display materials by category.
+     *
+     * @param string|null $category
+     * @return \Illuminate\Http\Response|HttpJsonResponse
+     */
+    public function byCategory(?string $category = null)
+    {
+        $category = $category ?? request('category');
+        $data = $this->service->byCategoryData($category);
+        $items = $data['items'];
+
+        if (request()->wantsJson()) {
+            return $this->successResponse([
+                'items' => $items,
+                'category' => $category,
+                'categories' => $data['categories']
+            ]);
+        }
+
+        return view($this->viewPath . '.by-category', [
+            'items' => $items,
+            'category' => $category,
+            'categories' => $data['categories'],
+            'resourceName' => $this->resourceName
+        ]);
+    }
+
+    /**
+     * Show low stock report.
+     *
+     * @return \Illuminate\Http\Response|HttpJsonResponse
+     */
+    public function lowStock()
+    {
+        $data = $this->service->lowStockData();
+        $items = $data['items'];
+
+        if (request()->wantsJson()) {
+            return $this->successResponse(['items' => $items]);
+        }
+
+        return view($this->viewPath . '.low-stock', [
+            'items' => $items,
+            'resourceName' => $this->resourceName
+        ]);
+    }
+
+    /**
+     * Show request form for materials.
+     *
+     * @return \Illuminate\Http\Response|HttpJsonResponse
+     */
+    public function showRequestForm()
+    {
+        $data = $this->service->requestFormData();
+
+        if (request()->wantsJson()) {
+            return $this->successResponse($data);
+        }
+
+        return view($this->viewPath . '.request-form', [
+            'materials' => $data['materials'],
+            'resourceName' => $this->resourceName
+        ]);
+    }
+
+    /**
+     * Submit a material request.
+     *
+     * @param MaterialRequestFormRequest $request
+     * @return \Illuminate\Http\Response|HttpJsonResponse
+     */
+    public function submitRequest(MaterialRequestFormRequest $request)
+    {
+        $message = $this->service->submitRequest((int) $request->input('material_id'));
+
+        return $this->respondWith(null, $message, $this->routePrefix . '.index');
     }
 
     /**
@@ -127,87 +262,5 @@ class MaterialController extends BaseController
             'metrics' => $metrics,
             'resourceName' => $this->resourceName
         ]);
-    }
-
-    /**
-     * Display materials by category.
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\Response|HttpJsonResponse
-     */
-    public function byCategory(Request $request)
-    {
-        $category = $request->input('category') ?? '';
-        $data = $this->service->byCategoryData($category);
-        
-        if ($request->wantsJson()) {
-            return $this->successResponse([
-                'items' => $data['items'],
-                'categories' => $data['categories'],
-                'category' => $category
-            ]);
-        }
-        
-        return view($this->viewPath . '.by-category', [
-            'items' => $data['items'],
-            'categories' => $data['categories'],
-            'category' => $category,
-            'resourceName' => $this->resourceName
-        ]);
-    }
-
-    /**
-     * Show the form for requesting a material.
-     *
-     * @return \Illuminate\Http\Response|HttpJsonResponse
-     */
-    public function showRequestForm()
-    {
-        $data = $this->service->requestFormData();
-        
-        if (request()->wantsJson()) {
-            return $this->successResponse($data['materials']);
-        }
-        
-        return view($this->viewPath . '.request-form', [
-            'materials' => $data['materials'],
-            'resourceName' => $this->resourceName
-        ]);
-    }
-
-    /**
-     * Display low-stock materials report.
-     *
-     * @return \Illuminate\Http\Response|HttpJsonResponse
-     */
-    public function lowStock()
-    {
-        $data = $this->service->lowStockData();
-
-        if (request()->wantsJson()) {
-            return $this->successResponse([
-                'items' => $data['items'],
-            ]);
-        }
-
-        return view($this->viewPath . '.low-stock', [
-            'items' => $data['items'],
-            'resourceName' => $this->resourceName,
-        ]);
-    }
-
-    /**
-     * Process the material request.
-     *
-     * @param MaterialRequestFormRequest $request
-     * @return \Illuminate\Http\Response|HttpJsonResponse
-     */
-    public function submitRequest(MaterialRequestFormRequest $request)
-    {
-        $validated = $request->validated();
-
-        $message = $this->service->submitRequest($validated['material_id']);
-        
-        return $this->respondWith(null, $message, $this->routePrefix . '.index');
     }
 }

@@ -4,10 +4,11 @@ use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 use App\Http\Controllers\TestController;
 
-// Include materials, products, and POS routes
+
 require __DIR__.'/materials.php';
 require __DIR__.'/products.php';
 require __DIR__.'/pos.php';
+require __DIR__.'/suppliers.php';
 
 Route::get('/', function () {
     return view('landing');
