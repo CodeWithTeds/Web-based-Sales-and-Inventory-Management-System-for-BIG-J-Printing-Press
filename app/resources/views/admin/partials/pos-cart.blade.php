@@ -25,7 +25,7 @@
                             <p class="text-xs text-gray-500">₱{{ number_format($item['price'], 2) }}</p>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <form method="POST" action="{{ route('admin.pos.remove', $item['id']) }}" hx-delete="{{ route('admin.pos.remove', $item['id']) }}" hx-target="#pos-cart" hx-swap="outerHTML">
+                            <form method="POST" action="{{ route((($routePrefix ?? 'admin.pos') . '.remove'), $item['id']) }}" hx-delete="{{ route((($routePrefix ?? 'admin.pos') . '.remove'), $item['id']) }}" hx-target="#pos-cart" hx-swap="outerHTML">
                                 @csrf
                                 @method('DELETE')
                                 <button class="h-7 w-7 flex items-center justify-center rounded bg-red-100 hover:bg-red-200">
@@ -35,13 +35,13 @@
                                 </button>
                             </form>
                             <div class="mt-2 flex items-center">
-                                <form method="POST" action="{{ route('admin.pos.decrement', $item['id']) }}" hx-patch="{{ route('admin.pos.decrement', $item['id']) }}" hx-target="#pos-cart" hx-swap="outerHTML">
+                                <form method="POST" action="{{ route((($routePrefix ?? 'admin.pos') . '.decrement'), $item['id']) }}" hx-patch="{{ route((($routePrefix ?? 'admin.pos') . '.decrement'), $item['id']) }}" hx-target="#pos-cart" hx-swap="outerHTML">
                                     @csrf
                                     @method('PATCH')
                                     <button class="h-7 w-7 flex items-center justify-center rounded-l bg-gray-100 hover:bg-gray-200">-</button>
                                 </form>
                                 <input type="text" readonly class="h-7 w-12 text-center border-t border-b border-gray-200" value="{{ $item['qty'] }}" />
-                                <form method="POST" action="{{ route('admin.pos.increment', $item['id']) }}" hx-post="{{ route('admin.pos.increment', $item['id']) }}" hx-target="#pos-cart" hx-swap="outerHTML">
+                                <form method="POST" action="{{ route((($routePrefix ?? 'admin.pos') . '.increment'), $item['id']) }}" hx-post="{{ route((($routePrefix ?? 'admin.pos') . '.increment'), $item['id']) }}" hx-target="#pos-cart" hx-swap="outerHTML">
                                     @csrf
                                     @method('PATCH')
                                     <button class="h-7 w-7 flex items-center justify-center rounded-r bg-gray-100 hover:bg-gray-200">+</button>
@@ -68,13 +68,13 @@
         </div>
 
         <div class="mt-3 flex items-center gap-2">
-            <form id="pos-checkout-form" method="POST" action="{{ route('admin.pos.checkout') }}" hx-post="{{ route('admin.pos.checkout') }}" hx-include="#customer_name" hx-target="#pos-cart" hx-swap="outerHTML">
+            <form id="pos-checkout-form" method="POST" action="{{ route((($routePrefix ?? 'admin.pos') . '.checkout')) }}" hx-post="{{ route((($routePrefix ?? 'admin.pos') . '.checkout')) }}" hx-include="#customer_name" hx-target="#pos-cart" hx-swap="outerHTML">
                 @csrf
                 <button class="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700" @disabled(empty($cart))>
                     Checkout
                 </button>
             </form>
-            <form method="POST" action="{{ route('admin.pos.clear') }}" hx-post="{{ route('admin.pos.clear') }}" hx-target="#pos-cart" hx-swap="outerHTML">
+            <form method="POST" action="{{ route((($routePrefix ?? 'admin.pos') . '.clear')) }}" hx-post="{{ route((($routePrefix ?? 'admin.pos') . '.clear')) }}" hx-target="#pos-cart" hx-swap="outerHTML">
                 @csrf
                 @method('DELETE')
                 <button class="inline-flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
@@ -87,8 +87,8 @@
             <div class="mt-3 text-green-600 text-sm">{{ $flashSuccess }}
                 @php($oid = $orderId ?? session('orderId'))
                 @if (!empty($oid))
-                    <a href="{{ route('admin.pos.receipt', $oid) }}" class="ml-2 underline text-indigo-600 hover:text-indigo-800">View Receipt</a>
-                    <a href="{{ route('admin.pos.receipt.download', $oid) }}" class="ml-2 underline text-indigo-600 hover:text-indigo-800">Download PDF</a>
+                    <a href="{{ route((($routePrefix ?? 'admin.pos') . '.receipt'), $oid) }}" class="ml-2 underline text-indigo-600 hover:text-indigo-800">View Receipt</a>
+                    <a href="{{ route((($routePrefix ?? 'admin.pos') . '.receipt.download'), $oid) }}" class="ml-2 underline text-indigo-600 hover:text-indigo-800">Download PDF</a>
                 @endif
             </div>
         @endif

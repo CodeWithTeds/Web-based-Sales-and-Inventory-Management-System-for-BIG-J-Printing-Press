@@ -70,7 +70,10 @@
 
         @empty($download)
             <div class="actions">
-                <a class="btn" href="{{ route('admin.pos.receipt.download', $order) }}">Download PDF</a>
+                @php
+                    $routePrefix = $routePrefix ?? 'admin.pos';
+                @endphp
+                <a href="{{ route($routePrefix . '.receipt.download', $order) }}" class="btn btn-primary">{{ __('Download PDF') }}</a>
             </div>
         @endempty
 

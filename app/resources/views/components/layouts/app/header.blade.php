@@ -101,12 +101,14 @@
                     <flux:navlist.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                     {{ __('Dashboard') }}
                     </flux:navlist.item>
+                    @hasanyrole('admin|staff')
                     <flux:navlist.item icon="cube" :href="route('materials.index')" :current="request()->routeIs('materials.*')" wire:navigate>
-                    {{ __('Materials') }}
+                        {{ __('Materials') }}
                     </flux:navlist.item>
                     <flux:navlist.item icon="shopping-bag" :href="route('products.index')" :current="request()->routeIs('products.*')" wire:navigate>
-                    {{ __('Products') }}
+                        {{ __('Products') }}
                     </flux:navlist.item>
+                    @endhasanyrole
                 </flux:navlist.group>
             </flux:navlist>
 

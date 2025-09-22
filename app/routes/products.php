@@ -3,7 +3,7 @@
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     // Standard CRUD routes
     Route::resource('products', ProductController::class);
 

@@ -171,19 +171,15 @@
                                 <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">₱{{ number_format($item->getTotalValue(), 2) }}</td>
                                 <td class="px-3 py-2 whitespace-nowrap text-sm">
                                     @if ($item->isLowStock())
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                                        <svg class="mr-1 h-2 w-2 text-red-500" fill="currentColor" viewBox="0 0 8 8">
-                                            <circle cx="4" cy="4" r="3" />
-                                        </svg>
-                                        Low
-                                    </span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                            <svg class="mr-1 h-2 w-2 text-red-500" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
+                                            Low
+                                        </span>
                                     @else
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                        <svg class="mr-1 h-2 w-2 text-green-500" fill="currentColor" viewBox="0 0 8 8">
-                                            <circle cx="4" cy="4" r="3" />
-                                        </svg>
-                                        In Stock
-                                    </span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                            <svg class="mr-1 h-2 w-2 text-green-500" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
+                                            In Stock
+                                        </span>
                                     @endif
                                 </td>
                                 <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500 text-right">
@@ -210,7 +206,7 @@
                                             <button type="submit" class="text-red-600 hover:text-red-900" title="Delete">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
+                                            </svg>
                                             </button>
                                         </form>
                                     </div>

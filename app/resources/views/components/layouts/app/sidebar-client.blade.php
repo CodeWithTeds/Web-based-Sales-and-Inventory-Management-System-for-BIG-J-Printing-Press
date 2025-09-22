@@ -14,16 +14,9 @@
             <flux:navlist variant="outline">
                 <flux:navlist.group :heading="__('Platform')" class="grid">
                     <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-                    @hasanyrole('admin|staff')
-                    <flux:navlist.item icon="cube" :href="route('materials.index')" :current="request()->routeIs('materials.*')" wire:navigate>{{ __('Materials') }}</flux:navlist.item>
-                    <flux:navlist.item icon="shopping-bag" :href="route('products.index')" :current="request()->routeIs('products.*')" wire:navigate>{{ __('Products') }}</flux:navlist.item>
-                    @endhasanyrole
-                    @if(auth()->check() && auth()->user()->isAdmin())
-                    <flux:navlist.item icon="users" :href="route('admin.suppliers.index')" :current="request()->routeIs('admin.suppliers.*')" wire:navigate>{{ __('Suppliers') }}</flux:navlist.item>
-                    <flux:navlist.item icon="banknotes" :href="route('admin.pos')" :current="request()->routeIs('admin.pos')" wire:navigate>{{ __('POS') }}</flux:navlist.item>
-                    @else
-                    <flux:navlist.item icon="banknotes" :href="route('admin.pos')" :current="request()->routeIs('admin.pos')" wire:navigate>{{ __('POS') }}</flux:navlist.item>
-                    @endif
+
+                    <!-- Client menu: hide admin/staff features -->
+                    <flux:navlist.item icon="banknotes" :href="route('client.ordering')" :current="request()->routeIs('client.ordering*')" wire:navigate>{{ __('Online Ordering') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
 
