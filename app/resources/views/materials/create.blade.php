@@ -68,7 +68,14 @@
                         <!-- Supplier -->
                         <div class="mt-4">
                             <x-input-label for="supplier" :value="__('Supplier')" />
-                            <x-text-input id="supplier" class="block mt-1 w-full" type="text" name="supplier" :value="old('supplier')" />
+                            <select id="supplier" name="supplier" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                                <option value="">{{ __('Select a supplier') }}</option>
+                                @if(isset($suppliers) && count($suppliers))
+                                    @foreach ($suppliers as $supplier)
+                                        <option value="{{ $supplier->name }}" @selected(old('supplier') == $supplier->name)>{{ $supplier->name }}</option>
+                                    @endforeach
+                                @endif
+                            </select>
                             <x-input-error :messages="$errors->get('supplier')" class="mt-2" />
                         </div>
 
