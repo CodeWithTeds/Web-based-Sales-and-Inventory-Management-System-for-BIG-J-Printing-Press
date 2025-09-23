@@ -26,6 +26,11 @@
     --color-accent: var(--color-neutral-800);
     --color-accent-content: var(--color-neutral-800);
     --color-accent-foreground: var(--color-white);
+
+    /* Brand colors */
+    --color-primary: #D62F1A; /* Chili Red */
+    --color-accent-brand: #BB822B; /* Dark Goldenrod */
+    --color-background: #F8F8F5; /* Dirty White */
 }
 
 @layer theme {
@@ -33,6 +38,8 @@
         --color-accent: var(--color-white);
         --color-accent-content: var(--color-white);
         --color-accent-foreground: var(--color-neutral-800);
+        /* Dark brand background fallback */
+        --color-background: var(--color-neutral-900);
     }
 }
 
@@ -59,6 +66,30 @@ input:focus[data-flux-control],
 textarea:focus[data-flux-control],
 select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+}
+
+/* Sidebar brand customizations */
+@layer components {
+    /* Use brand background for sidebars that rely on Flux navlist */
+    [data-flux-sidebar] {
+        background-color: var(--color-background);
+    }
+
+    /* Default icon color in sidebar = accent brand */
+    [data-flux-navlist] [data-flux-navlist-item] svg {
+        color: var(--color-accent-brand) !important;
+    }
+
+    /* Hover/current state: text and icon turn primary (Chili Red) */
+    [data-flux-navlist] [data-flux-navlist-item]:hover,
+    [data-flux-navlist] [data-flux-navlist-item][data-current] {
+        color: var(--color-primary) !important;
+    }
+
+    [data-flux-navlist] [data-flux-navlist-item]:hover svg,
+    [data-flux-navlist] [data-flux-navlist-item][data-current] svg {
+        color: var(--color-primary) !important;
+    }
 }
 
 /* \[:where(&)\]:size-4 {

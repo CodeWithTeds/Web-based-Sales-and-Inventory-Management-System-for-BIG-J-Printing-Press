@@ -23,6 +23,7 @@
                     @endif
 
                     <flux:navlist.item icon="banknotes" :href="route('admin.pos')" :current="request()->routeIs('admin.pos')" wire:navigate>{{ __('POS') }}</flux:navlist.item>
+                   <flux:navlist.item icon="layout-grid" :href="route('admin.orders.index')" :current="request()->routeIs('admin.orders.*')" wire:navigate>{{ __('Orders') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
 

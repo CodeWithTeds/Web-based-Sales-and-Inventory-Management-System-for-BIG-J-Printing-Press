@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 use App\Http\Controllers\TestController;
+use App\Http\Controllers\Admin\OrdersController;
 
 
 require __DIR__.'/materials.php';
@@ -33,6 +34,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
         return view('dashboard', ['message' => 'Admin Dashboard']);
     })->name('admin.dashboard');
     
+    // Orders
+    Route::get('/orders', [OrdersController::class, 'index'])->name('admin.orders.index');
+    Route::get('/orders/{order}', [OrdersController::class, 'show'])->name('admin.orders.show');
+    Route::put('/orders/{order}/delivery-status', [OrdersController::class, 'updateDeliveryStatus'])->name('admin.orders.delivery.update');
 });
 
 // Staff routes

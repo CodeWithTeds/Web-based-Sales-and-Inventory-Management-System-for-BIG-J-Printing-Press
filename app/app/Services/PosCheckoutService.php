@@ -38,10 +38,15 @@ class PosCheckoutService
         }
 
         try {
+            // Determine if this is client ordering (online) flow: allow skipping stock validation/deduction
+            $currentRouteName = Route::currentRouteName();
+            $isClientOrdering = is_string($currentRouteName) && str_contains($currentRouteName, 'client.ordering');
+
             // Build requirements and items
             $requirements = [];
             $items = [];
             $total = 0.0;
+            $missingProducts = [];
 
             foreach ($cart as $item) {
                 if (!isset($item['id'], $item['qty'], $item['price'], $item['name'])) {
@@ -49,6 +54,12 @@ class PosCheckoutService
                     continue;
                 }
                 $product = Product::with('materials')->findOrFail((int) $item['id']);
+
+                // Admin POS validation: product must have material mappings
+                if ($product->materials->isEmpty()) {
+                    $missingProducts[] = (string) $product->name;
+                }
+
                 foreach ($product->materials as $material) {
                     $required = (float) $material->pivot->quantity * (int) $item['qty'];
                     $requirements[$material->id] = ($requirements[$material->id] ?? 0) + $required;
@@ -64,6 +75,15 @@ class PosCheckoutService
                 $total += $lineTotal;
             }
 
+            // If Admin POS and there are products without material mappings, block checkout
+            if (!$isClientOrdering && !empty($missingProducts)) {
+                return [
+                    'success' => false,
+                    'order' => null,
+                    'error' => 'These products have no material mapping: ' . implode(', ', array_unique($missingProducts)) . '. Please attach materials before POS checkout.'
+                ];
+            }
+
             // Fetch current user's saved address (if any)
             $userAddress = $this->address->getUserAddress();
 
@@ -75,10 +95,6 @@ class PosCheckoutService
                 'user_id' => Auth::id(),
                 'user_address_id' => $userAddress->id ?? null,
             ];
-
-            // Determine if this is client ordering (online) flow: allow skipping stock validation/deduction
-            $currentRouteName = Route::currentRouteName();
-            $isClientOrdering = is_string($currentRouteName) && str_contains($currentRouteName, 'client.ordering');
 
             $order = $this->checkoutRepo->processCheckout($orderData, $items, $requirements, $isClientOrdering);
             $this->cart->clear();
