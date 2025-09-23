@@ -5,13 +5,16 @@ namespace App\Services;
 use App\Models\Product;
 use App\Repositories\CheckoutRepository;
 use App\Services\CartService;
+use App\Services\AddressService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 class PosCheckoutService
 {
     public function __construct(
         protected CheckoutRepository $checkoutRepo,
-        protected CartService $cart
+        protected CartService $cart,
+        protected AddressService $address,
     ) {}
 
     /**
@@ -61,15 +64,23 @@ class PosCheckoutService
                 $total += $lineTotal;
             }
 
+            // Fetch current user's saved address (if any)
+            $userAddress = $this->address->getUserAddress();
+
             $orderData = [
                 'order_number' => 'POS-' . now()->format('YmdHis') . '-' . random_int(100, 999),
                 'customer_name' => $customerName,
                 'total' => $total,
                 'status' => 'completed',
                 'user_id' => Auth::id(),
+                'user_address_id' => $userAddress->id ?? null,
             ];
 
-            $order = $this->checkoutRepo->processCheckout($orderData, $items, $requirements);
+            // Determine if this is client ordering (online) flow: allow skipping stock validation/deduction
+            $currentRouteName = Route::currentRouteName();
+            $isClientOrdering = is_string($currentRouteName) && str_contains($currentRouteName, 'client.ordering');
+
+            $order = $this->checkoutRepo->processCheckout($orderData, $items, $requirements, $isClientOrdering);
             $this->cart->clear();
             return [ 'success' => true, 'order' => $order, 'error' => null ];
         } catch (\Throwable $e) {

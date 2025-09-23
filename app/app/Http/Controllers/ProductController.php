@@ -230,13 +230,13 @@ class ProductController extends BaseController
         if (request()->wantsJson()) {
             return $this->successResponse([
                 'item' => $data['item'],
-                'allMaterials' => $data['allMaterials']
+                'availableMaterials' => $data['allMaterials']
             ]);
         }
 
         return view($this->viewPath . '.materials', [
             'product' => $data['item'],
-            'allMaterials' => $data['allMaterials'],
+            'availableMaterials' => $data['allMaterials'],
             'resourceName' => $this->resourceName
         ]);
     }
@@ -250,15 +250,29 @@ class ProductController extends BaseController
      */
     public function addMaterial(ProductAddMaterialRequest $request, string $id)
     {
-        $product = $this->service->addMaterials($id, $request->material_ids, $request->quantities);
+        try {
+            $product = $this->service->addMaterials($id, $request->material_ids, $request->quantities);
 
-        if (request()->wantsJson()) {
-            return $this->successResponse([
-                'product' => $product
-            ]);
+            if (request()->wantsJson()) {
+                return $this->successResponse([
+                    'product' => $product
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Materials updated successfully!');
+        } catch (\RuntimeException $e) {
+            if (strpos($e->getMessage(), 'INSUFFICIENT_STOCK') === 0) {
+                $errorMessage = str_replace('INSUFFICIENT_STOCK: ', '', $e->getMessage());
+                
+                if (request()->wantsJson()) {
+                    return $this->errorResponse($errorMessage, 422);
+                }
+                
+                return redirect()->back()->with('error', $errorMessage);
+            }
+            
+            throw $e;
         }
-
-        return redirect()->back()->with('success', 'Materials updated successfully!');
     }
 
     /**

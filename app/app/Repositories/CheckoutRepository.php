@@ -14,13 +14,14 @@ class CheckoutRepository
      * @param array $orderData
      * @param array<int, array{product_id:int,name:string,qty:int,price:float,line_total:float}> $items
      * @param array<int,float> $materialRequirements material_id => total_required
+     * @param bool $skipStock When true, skip stock validation and deduction (used for client ordering "free" orders)
      * @return Order
      */
-    public function processCheckout(array $orderData, array $items, array $materialRequirements): Order
+    public function processCheckout(array $orderData, array $items, array $materialRequirements, bool $skipStock = false): Order
     {
-        return DB::transaction(function () use ($orderData, $items, $materialRequirements) {
+        return DB::transaction(function () use ($orderData, $items, $materialRequirements, $skipStock) {
             // Lock materials and validate stock
-            if (!empty($materialRequirements)) {
+            if (!$skipStock && !empty($materialRequirements)) {
                 $materials = Material::whereIn('id', array_keys($materialRequirements))
                     ->lockForUpdate()
                     ->get()
@@ -61,11 +62,13 @@ class CheckoutRepository
                 ]);
             }
 
-            // Deduct materials
-            foreach ($materialRequirements as $materialId => $requiredQty) {
-                $material = Material::findOrFail($materialId);
-                $material->quantity -= $requiredQty;
-                $material->save();
+            // Deduct materials only when not skipping stock handling
+            if (!$skipStock) {
+                foreach ($materialRequirements as $materialId => $requiredQty) {
+                    $material = Material::findOrFail($materialId);
+                    $material->quantity -= $requiredQty;
+                    $material->save();
+                }
             }
 
             return $order;

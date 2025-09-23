@@ -17,6 +17,7 @@ class Order extends Model
         'total',
         'status',
         'user_id',
+        'user_address_id',
     ];
 
     public function items(): HasMany

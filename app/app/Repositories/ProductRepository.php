@@ -57,11 +57,17 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
      * @param int $materialId
      * @param float $quantity
      * @return \App\Models\Product
+     * @throws \RuntimeException If material is out of stock
      */
     public function addMaterial(int $productId, int $materialId, float $quantity)
     {
         $product = $this->find($productId);
         $material = Material::findOrFail($materialId);
+
+        // Check if there's enough stock
+        if ($material->quantity < $quantity) {
+            throw new \RuntimeException("INSUFFICIENT_STOCK: {$material->name} has only {$material->quantity} {$material->unit} available, but {$quantity} {$material->unit} required.");
+        }
 
         // Check if the material is already attached to the product
         if ($product->materials()->where('material_id', $materialId)->exists()) {

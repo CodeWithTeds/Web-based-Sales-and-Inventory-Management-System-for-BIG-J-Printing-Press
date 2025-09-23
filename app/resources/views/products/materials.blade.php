@@ -124,8 +124,13 @@
                                     <div class="mt-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                                         @foreach($availableMaterials as $material)
                                         <div class="flex items-center">
-                                            <input type="checkbox" id="material_{{ $material->id }}" name="material_ids[]" value="{{ $material->id }}" data-unit="{{ $material->unit }}" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                            <label for="material_{{ $material->id }}" class="ml-2 text-sm text-gray-700">{{ $material->name }} ({{ $material->quantity }} {{ $material->unit }} available)</label>
+                                            <input type="checkbox" id="material_{{ $material->id }}" name="material_ids[]" value="{{ $material->id }}" data-unit="{{ $material->unit }}" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" {{ $material->quantity <= 0 ? 'disabled' : '' }}>
+                                            <label for="material_{{ $material->id }}" class="ml-2 text-sm {{ $material->quantity <= 0 ? 'text-gray-400' : 'text-gray-700' }}">
+                                                {{ $material->name }} 
+                                                <span class="{{ $material->quantity <= 0 ? 'text-red-500 font-medium' : 'text-gray-500' }}">
+                                                    ({{ $material->quantity }} {{ $material->unit }} available{{ $material->quantity <= 0 ? ' - Out of Stock' : '' }})
+                                                </span>
+                                            </label>
                                         </div>
                                         @endforeach
                                     </div>
