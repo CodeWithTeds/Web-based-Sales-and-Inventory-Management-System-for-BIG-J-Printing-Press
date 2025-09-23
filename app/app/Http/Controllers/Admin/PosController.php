@@ -3,18 +3,19 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
+use App\Models\Payment;
 use App\Repositories\PosRepository;
 use App\Services\CartService;
-use Illuminate\Http\Request;
-use App\Models\Order;
 use App\Services\PosCheckoutService;
-use App\Http\Requests\PosCheckoutRequest;
 use App\Services\PosService;
 use Dompdf\Dompdf;
 use Dompdf\Options;
-use App\Traits\HandlesPosErrors;
-use Illuminate\Support\Facades\Route as RouteFacade;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Route as RouteFacade;
+use App\Http\Requests\PosCheckoutRequest;
+use App\Traits\HandlesPosErrors;
 
 class PosController extends Controller
 {
@@ -298,15 +299,24 @@ class PosController extends Controller
 
         $result = $this->checkoutService->checkout(['customer_name' => $customerName]);
         if (!$result['success']) {
-            // If order creation fails, surface the error back to ordering page
             return redirect()->route('client.ordering')->with('error', $result['error'] ?? 'Checkout failed.');
         }
 
-        $receiptUrl = route('client.ordering.receipt', $result['order']);
+        $order = $result['order'];
+        Payment::create([
+            'order_id' => $order->id,
+            'provider' => 'paymongo',
+            'method' => 'gcash',
+            'amount' => $order->total,
+            'currency' => 'PHP',
+            'reference' => $csId,
+            'paid_at' => now(),
+        ]);
+
+        $receiptUrl = route('client.ordering.receipt', $order);
         return redirect()->to($receiptUrl);
     }
 
-    // PayMongo cancel callback: just return to ordering page with notice
     public function paymongoCancel()
     {
         session()->forget('paymongo.checkout_session_id');

@@ -16,6 +16,7 @@ class Order extends Model
         'customer_name',
         'total',
         'status',
+        'delivery_status',
         'user_id',
         'user_address_id',
     ];
@@ -28,5 +29,10 @@ class Order extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
     }
 }
