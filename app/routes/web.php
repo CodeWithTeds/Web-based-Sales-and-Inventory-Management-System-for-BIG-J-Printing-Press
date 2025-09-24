@@ -4,6 +4,11 @@ use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\Admin\OrdersController;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Payment;
+use App\Models\UserAddress;
+use Illuminate\Support\Facades\Auth;
 
 
 require __DIR__.'/materials.php';
@@ -15,9 +20,27 @@ Route::get('/', function () {
     return view('landing');
 })->name('home');
 
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+Route::get('dashboard', function () {
+    $ordersByStatus = Order::selectRaw('status, COUNT(*) as count')->groupBy('status')->pluck('count', 'status')->toArray();
+    $recentOrders = Order::with(['user'])->latest()->limit(10)->get();
+    $recentOrderItems = OrderItem::with(['order', 'product'])->latest()->limit(10)->get();
+    $myAddresses = Auth::check()
+        ? UserAddress::where('user_id', Auth::id())->latest()->limit(10)->get()
+        : collect();
+    $recentPayments = Payment::with(['order'])->latest()->limit(10)->get();
+
+    $data = [
+        'message' => __('Dashboard'),
+        'ordersByStatus' => $ordersByStatus,
+        'totalOrders' => Order::count(),
+        'itemsSold' => OrderItem::sum('qty'),
+        'recentOrders' => $recentOrders,
+        'recentOrderItems' => $recentOrderItems,
+        'myAddresses' => $myAddresses,
+        'recentPayments' => $recentPayments,
+    ];
+    return view('dashboard', $data);
+})->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
@@ -31,7 +54,25 @@ Route::view('settings/address', 'settings.address')->name('address.edit');
 // Admin routes
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', function () {
-        return view('dashboard', ['message' => 'Admin Dashboard']);
+        $ordersByStatus = Order::selectRaw('status, COUNT(*) as count')->groupBy('status')->pluck('count', 'status')->toArray();
+        $recentOrders = Order::with(['user'])->latest()->limit(10)->get();
+        $recentOrderItems = OrderItem::with(['order', 'product'])->latest()->limit(10)->get();
+        $myAddresses = Auth::check()
+            ? UserAddress::where('user_id', Auth::id())->latest()->limit(10)->get()
+            : collect();
+        $recentPayments = Payment::with(['order'])->latest()->limit(10)->get();
+
+        $data = [
+            'message' => 'Admin Dashboard',
+            'ordersByStatus' => $ordersByStatus,
+            'totalOrders' => Order::count(),
+            'itemsSold' => OrderItem::sum('qty'),
+            'recentOrders' => $recentOrders,
+            'recentOrderItems' => $recentOrderItems,
+            'myAddresses' => $myAddresses,
+            'recentPayments' => $recentPayments,
+        ];
+        return view('dashboard', $data);
     })->name('admin.dashboard');
     
     // Orders
@@ -43,14 +84,50 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 // Staff routes
 Route::middleware(['auth', 'role:staff'])->prefix('staff')->group(function () {
     Route::get('/dashboard', function () {
-        return view('dashboard', ['message' => 'Staff Dashboard']);
+        $ordersByStatus = Order::selectRaw('status, COUNT(*) as count')->groupBy('status')->pluck('count', 'status')->toArray();
+        $recentOrders = Order::with(['user'])->latest()->limit(10)->get();
+        $recentOrderItems = OrderItem::with(['order', 'product'])->latest()->limit(10)->get();
+        $myAddresses = Auth::check()
+            ? UserAddress::where('user_id', Auth::id())->latest()->limit(10)->get()
+            : collect();
+        $recentPayments = Payment::with(['order'])->latest()->limit(10)->get();
+
+        $data = [
+            'message' => 'Staff Dashboard',
+            'ordersByStatus' => $ordersByStatus,
+            'totalOrders' => Order::count(),
+            'itemsSold' => OrderItem::sum('qty'),
+            'recentOrders' => $recentOrders,
+            'recentOrderItems' => $recentOrderItems,
+            'myAddresses' => $myAddresses,
+            'recentPayments' => $recentPayments,
+        ];
+        return view('dashboard', $data);
     })->name('staff.dashboard');
 });
 
 // Driver routes
 Route::middleware(['auth', 'role:driver'])->prefix('driver')->group(function () {
     Route::get('/dashboard', function () {
-        return view('dashboard', ['message' => 'Driver Dashboard']);
+        $ordersByStatus = Order::selectRaw('status, COUNT(*) as count')->groupBy('status')->pluck('count', 'status')->toArray();
+        $recentOrders = Order::with(['user'])->latest()->limit(10)->get();
+        $recentOrderItems = OrderItem::with(['order', 'product'])->latest()->limit(10)->get();
+        $myAddresses = Auth::check()
+            ? UserAddress::where('user_id', Auth::id())->latest()->limit(10)->get()
+            : collect();
+        $recentPayments = Payment::with(['order'])->latest()->limit(10)->get();
+
+        $data = [
+            'message' => 'Driver Dashboard',
+            'ordersByStatus' => $ordersByStatus,
+            'totalOrders' => Order::count(),
+            'itemsSold' => OrderItem::sum('qty'),
+            'recentOrders' => $recentOrders,
+            'recentOrderItems' => $recentOrderItems,
+            'myAddresses' => $myAddresses,
+            'recentPayments' => $recentPayments,
+        ];
+        return view('dashboard', $data);
     })->name('driver.dashboard');
 });
 
