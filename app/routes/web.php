@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\UserAddress;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 
@@ -21,19 +22,52 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('dashboard', function () {
-    $ordersByStatus = Order::selectRaw('status, COUNT(*) as count')->groupBy('status')->pluck('count', 'status')->toArray();
-    $recentOrders = Order::with(['user'])->latest()->limit(10)->get();
-    $recentOrderItems = OrderItem::with(['order', 'product'])->latest()->limit(10)->get();
+    /** @var User|null $user */
+    $user = Auth::user();
+    
+    $deliveryByStatus = Order::where('user_id', Auth::id())
+        ->selectRaw('delivery_status, COUNT(*) as count')
+        ->groupBy('delivery_status')
+        ->pluck('count', 'delivery_status')
+        ->toArray();
+        
+    $ordersByStatus = Order::where('user_id', Auth::id())
+        ->selectRaw('status, COUNT(*) as count')
+        ->groupBy('status')
+        ->pluck('count', 'status')
+        ->toArray();
+
+    $recentOrders = Order::where('user_id', Auth::id())
+        ->latest()->limit(10)->get();
+
+    $recentOrderItems = OrderItem::with(['order', 'product'])
+        ->whereHas('order', function ($oq) {
+            $oq->where('user_id', Auth::id());
+        })
+        ->latest()->limit(10)->get();
+
     $myAddresses = Auth::check()
-        ? UserAddress::where('user_id', Auth::id())->latest()->limit(10)->get()
+        ? ($user && $user->isAdmin() 
+            ? UserAddress::with('user')->latest()->limit(10)->get()
+            : UserAddress::where('user_id', Auth::id())->latest()->limit(10)->get())
         : collect();
-    $recentPayments = Payment::with(['order'])->latest()->limit(10)->get();
+
+    $recentPayments = Payment::with(['order'])
+        ->when($user && !$user->isAdmin(), function ($query) {
+            $query->whereHas('order', function ($oq) {
+                $oq->where('user_id', Auth::id());
+            });
+        })
+        ->latest()->limit(10)->get();
 
     $data = [
         'message' => __('Dashboard'),
+        'deliveryByStatus' => $deliveryByStatus,
         'ordersByStatus' => $ordersByStatus,
-        'totalOrders' => Order::count(),
-        'itemsSold' => OrderItem::sum('qty'),
+        'totalOrders' => $user && $user->isAdmin() ? Order::count() : Order::where('user_id', Auth::id())->count(),
+        'itemsSold' => $user && $user->isAdmin() ? OrderItem::sum('qty') : OrderItem::whereHas('order', function ($q) {
+            $q->where('user_id', Auth::id());
+        })->sum('qty'),
         'recentOrders' => $recentOrders,
         'recentOrderItems' => $recentOrderItems,
         'myAddresses' => $myAddresses,
@@ -54,6 +88,10 @@ Route::view('settings/address', 'settings.address')->name('address.edit');
 // Admin routes
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', function () {
+        /** @var User|null $user */
+        $user = Auth::user();
+        
+        $deliveryByStatus = Order::selectRaw('delivery_status, COUNT(*) as count')->groupBy('delivery_status')->pluck('count', 'delivery_status')->toArray();
         $ordersByStatus = Order::selectRaw('status, COUNT(*) as count')->groupBy('status')->pluck('count', 'status')->toArray();
         $recentOrders = Order::with(['user'])->latest()->limit(10)->get();
         $recentOrderItems = OrderItem::with(['order', 'product'])->latest()->limit(10)->get();
@@ -64,6 +102,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 
         $data = [
             'message' => 'Admin Dashboard',
+            'deliveryByStatus' => $deliveryByStatus,
             'ordersByStatus' => $ordersByStatus,
             'totalOrders' => Order::count(),
             'itemsSold' => OrderItem::sum('qty'),
@@ -84,6 +123,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 // Staff routes
 Route::middleware(['auth', 'role:staff'])->prefix('staff')->group(function () {
     Route::get('/dashboard', function () {
+        /** @var User|null $user */
+        $user = Auth::user();
+        
+        $deliveryByStatus = Order::selectRaw('delivery_status, COUNT(*) as count')->groupBy('delivery_status')->pluck('count', 'delivery_status')->toArray();
         $ordersByStatus = Order::selectRaw('status, COUNT(*) as count')->groupBy('status')->pluck('count', 'status')->toArray();
         $recentOrders = Order::with(['user'])->latest()->limit(10)->get();
         $recentOrderItems = OrderItem::with(['order', 'product'])->latest()->limit(10)->get();
@@ -94,6 +137,7 @@ Route::middleware(['auth', 'role:staff'])->prefix('staff')->group(function () {
 
         $data = [
             'message' => 'Staff Dashboard',
+            'deliveryByStatus' => $deliveryByStatus,
             'ordersByStatus' => $ordersByStatus,
             'totalOrders' => Order::count(),
             'itemsSold' => OrderItem::sum('qty'),
@@ -109,6 +153,10 @@ Route::middleware(['auth', 'role:staff'])->prefix('staff')->group(function () {
 // Driver routes
 Route::middleware(['auth', 'role:driver'])->prefix('driver')->group(function () {
     Route::get('/dashboard', function () {
+        /** @var User|null $user */
+        $user = Auth::user();
+        
+        $deliveryByStatus = Order::selectRaw('delivery_status, COUNT(*) as count')->groupBy('delivery_status')->pluck('count', 'delivery_status')->toArray();
         $ordersByStatus = Order::selectRaw('status, COUNT(*) as count')->groupBy('status')->pluck('count', 'status')->toArray();
         $recentOrders = Order::with(['user'])->latest()->limit(10)->get();
         $recentOrderItems = OrderItem::with(['order', 'product'])->latest()->limit(10)->get();
@@ -119,6 +167,7 @@ Route::middleware(['auth', 'role:driver'])->prefix('driver')->group(function () 
 
         $data = [
             'message' => 'Driver Dashboard',
+            'deliveryByStatus' => $deliveryByStatus,
             'ordersByStatus' => $ordersByStatus,
             'totalOrders' => Order::count(),
             'itemsSold' => OrderItem::sum('qty'),
