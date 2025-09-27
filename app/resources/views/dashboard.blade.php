@@ -5,9 +5,17 @@
             <div class="relative z-10">
                 <div class="flex items-center justify-between">
                     <div>
+                        @if(auth()->check() && auth()->user()->isDriver())
+                        <p class="text-sm text-white/90 opacity-90">{{ __('Welcome, Driver!') }}</p>
+                        @else
                         <p class="text-sm text-white/90 opacity-90">{{ __('Welcome back') }}</p>
+                        @endif
                         <h2 class="text-2xl font-bold text-white">{{ auth()->user()->name }}</h2>
+                        @if(auth()->check() && auth()->user()->isDriver())
+                        <p class="mt-2 text-white/90 opacity-90">{{ __('Here are your latest assignments and delivery updates.') }}</p>
+                        @else
                         <p class="mt-2 text-white/90 opacity-90">{{ __('Here is an overview of your inventory and orders.') }}</p>
+                        @endif
                     </div>
                     <div class="flex h-14 w-14 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
                         <x-app-logo-icon class="size-7 text-white" />
