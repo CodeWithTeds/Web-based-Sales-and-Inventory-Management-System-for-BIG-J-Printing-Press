@@ -20,6 +20,7 @@
 
                     @if(auth()->check() && auth()->user()->isAdmin())
                     <flux:navlist.item icon="users" :href="route('admin.suppliers.index')" :current="request()->routeIs('admin.suppliers.*')" wire:navigate>{{ __('Suppliers') }}</flux:navlist.item>
+                    <flux:navlist.item icon="users" :href="route('admin.drivers.index')" :current="request()->routeIs('admin.drivers.*')" wire:navigate>{{ __('Drivers') }}</flux:navlist.item>
                     @endif
 
                     <flux:navlist.item icon="banknotes" :href="route('admin.pos')" :current="request()->routeIs('admin.pos')" wire:navigate>{{ __('POS') }}</flux:navlist.item>
