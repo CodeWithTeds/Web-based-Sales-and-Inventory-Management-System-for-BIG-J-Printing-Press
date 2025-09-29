@@ -51,6 +51,11 @@
             </div>
         </div>
 
+        @if(auth()->check() && auth()->user()->isDriver())
+            {{-- Removed Orders Map from dashboard --}}
+            {{-- @livewire('driver.orders-map') --}}
+        @endif
+
         {{-- Only show admin/staff widgets for non-client users --}}
         @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isStaff()))
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">

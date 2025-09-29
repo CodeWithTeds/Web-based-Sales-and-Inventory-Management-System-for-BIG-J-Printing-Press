@@ -15,6 +15,10 @@
                 <flux:navlist.group :heading="__('Platform')" class="grid">
                     <!-- Driver menu: minimal, validated -->
                     <flux:navlist.item icon="home" :href="route('driver.dashboard')" :current="request()->routeIs('driver.dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+                    
+                    <!-- Orders Map Navigation -->
+                    <flux:navlist.item icon="map" :href="route('driver.orders.map')" :current="request()->routeIs('driver.orders.map')" wire:navigate>{{ __('Orders Map') }}</flux:navlist.item>
+                    
                     <!-- Add more driver-specific items here when routes exist (e.g., Deliveries, Assigned Orders) -->
                 </flux:navlist.group>
             </flux:navlist>
@@ -35,7 +39,7 @@
                             <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
                                 <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
                                     <span
-                                        class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white"
+                                        class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text_black dark:bg-neutral-700 dark:text-white"
                                     >
                                         {{ auth()->user()->initials() }}
                                     </span>
@@ -82,10 +86,10 @@
                 <flux:menu>
                     <flux:menu.radio.group>
                         <div class="p-0 text-sm font-normal">
-                            <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
+                            <div class="flex items_center gap-2 px-1 py-1.5 text-start text-sm">
                                 <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
                                     <span
-                                        class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white"
+                                        class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text_black dark:bg-neutral-700 dark:text-white"
                                     >
                                         {{ auth()->user()->initials() }}
                                     </span>

@@ -52,6 +52,24 @@
             @error('exact_address') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
         </div>
 
+        <!-- Coordinates display -->
+        <div class="rounded-md border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700 dark:border-gray-700 dark:bg-neutral-900 dark:text-gray-200">
+            <h3 class="font-medium text-base mb-2">{{ __('Location Coordinates') }}</h3>
+            <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="font-medium">{{ __('Latitude') }}:</span>
+                    <span>{{ $latitude ? number_format($latitude, 6) : __('Not set') }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="font-medium">{{ __('Longitude') }}:</span>
+                    <span>{{ $longitude ? number_format($longitude, 6) : __('Not set') }}</span>
+                </div>
+                <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    {{ __('Coordinates are automatically generated based on your PSGC selections.') }}
+                </div>
+            </div>
+        </div>
+
         <div class="flex items-center gap-4">
             <div class="flex items-center justify-end">
                 <flux:button variant="primary" type="submit" class="w-full" data-test="update-address-button">

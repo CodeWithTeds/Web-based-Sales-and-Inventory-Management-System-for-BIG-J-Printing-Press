@@ -13,3 +13,5 @@
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 @fluxAppearance
+@stack('styles')
+@stack('scripts')
