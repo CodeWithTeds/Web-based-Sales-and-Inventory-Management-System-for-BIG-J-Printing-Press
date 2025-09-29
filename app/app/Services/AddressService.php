@@ -110,6 +110,8 @@ class AddressService
                 'city_code' => $data['city_code'],
                 'barangay_code' => $data['barangay_code'],
                 'exact_address' => $data['exact_address'] ?? null,
+                'latitude' => $data['latitude'] ?? null,
+                'longitude' => $data['longitude'] ?? null,
                 'updated_at' => now(),
                 'created_at' => now(),
             ]

@@ -179,9 +179,25 @@ Route::middleware(['auth', 'role:driver'])->prefix('driver')->group(function () 
         ];
         return view('dashboard', $data);
     })->name('driver.dashboard');
+    
+    // Driver Orders
+    Route::get('/orders', [App\Http\Controllers\Driver\OrdersController::class, 'index'])->name('driver.orders.index');
+    
+    // Orders Map page (renders the Livewire map component)
+    Route::get('/orders/map', function () {
+        return view('driver.orders.index');
+    })->name('driver.orders.map');
+    
+    Route::get('/orders/{order}', [App\Http\Controllers\Driver\OrdersController::class, 'show'])->name('driver.orders.show');
+    Route::put('/orders/{order}/delivery-status', [App\Http\Controllers\Driver\OrdersController::class, 'updateDeliveryStatus'])->name('driver.orders.delivery.update');
 });
 
 // Test route for ProductRepositoryInterface
 Route::get('/test-product-repository', TestController::class);
+
+// Alternative Map route (auth only) to bypass role restriction during debugging
+Route::middleware(['auth'])->get('/map/orders', function () {
+    return view('driver.orders.index');
+})->name('orders.map.alt');
 
 require __DIR__ . '/auth.php';

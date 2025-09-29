@@ -22,9 +22,18 @@ class Order extends Model
         'user_address_id',
     ];
 
+    // Expose a virtual total_amount attribute for legacy references
+    protected $appends = ['total_amount'];
+
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    // Alias expected by various Livewire components
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class, 'order_id');
     }
 
     public function user(): BelongsTo
@@ -40,5 +49,10 @@ class Order extends Model
     public function userAddress(): BelongsTo
     {
         return $this->belongsTo(UserAddress::class, 'user_address_id');
+    }
+
+    public function getTotalAmountAttribute(): float
+    {
+        return (float) ($this->total ?? 0);
     }
 }
