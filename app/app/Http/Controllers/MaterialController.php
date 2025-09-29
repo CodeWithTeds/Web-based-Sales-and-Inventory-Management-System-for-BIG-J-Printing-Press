@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\MaterialRequest;
 use App\Http\Requests\StockInRequest;
 use App\Http\Requests\MaterialRequestFormRequest;
+use App\Http\Requests\StockOutRequest;
 use App\Repositories\MaterialRepositoryInterface;
 use App\Services\MaterialService;
 use Illuminate\Http\Request;
@@ -233,6 +234,43 @@ class MaterialController extends BaseController
         $this->service->stockIn($id, $validated['quantity'], $validated['notes'] ?? null);
         
         $message = 'Stock added successfully to ' . $this->resourceName;
+        return $this->respondWith(null, $message, $this->routePrefix . '.index');
+    }
+
+    /**
+     * Show the form for stock out.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\Response|HttpJsonResponse
+     */
+    public function showStockOutForm($id)
+    {
+        $item = $this->service->stockOutFormData($id);
+
+        if (request()->wantsJson()) {
+            return $this->successResponse($item);
+        }
+
+        return view($this->viewPath . '.stock-out', [
+            'item' => $item,
+            'resourceName' => $this->resourceName
+        ]);
+    }
+
+    /**
+     * Process the stock-out request.
+     *
+     * @param StockOutRequest $request
+     * @param int $id
+     * @return \Illuminate\Http\Response|HttpJsonResponse
+     */
+    public function stockOut(StockOutRequest $request, $id)
+    {
+        $validated = $request->validated();
+
+        $this->service->stockOut($id, $validated['quantity']);
+
+        $message = 'Stock deducted successfully from ' . $this->resourceName;
         return $this->respondWith(null, $message, $this->routePrefix . '.index');
     }
 

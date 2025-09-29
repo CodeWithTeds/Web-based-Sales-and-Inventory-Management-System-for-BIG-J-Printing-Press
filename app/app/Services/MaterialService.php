@@ -70,4 +70,14 @@ class MaterialService
             'items' => $this->materials->getLowStockMaterials(),
         ];
     }
+
+    public function stockOutFormData(int $id)
+    {
+        return $this->materials->find($id);
+    }
+
+    public function stockOut(int $id, float $quantity): void
+    {
+        $this->materials->stockOut($id, $quantity);
+    }
 }

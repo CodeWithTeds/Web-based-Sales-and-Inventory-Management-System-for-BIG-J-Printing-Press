@@ -21,10 +21,17 @@
                     @if(auth()->check() && auth()->user()->isAdmin())
                     <flux:navlist.item icon="users" :href="route('admin.suppliers.index')" :current="request()->routeIs('admin.suppliers.*')" wire:navigate>{{ __('Suppliers') }}</flux:navlist.item>
                     <flux:navlist.item icon="users" :href="route('admin.drivers.index')" :current="request()->routeIs('admin.drivers.*')" wire:navigate>{{ __('Drivers') }}</flux:navlist.item>
+                    <flux:navlist.item icon="users" :href="route('admin.staff.index')" :current="request()->routeIs('admin.staff.index')" wire:navigate>{{ __('Staff') }}</flux:navlist.item>
+                    <flux:navlist.item icon="user-plus" :href="route('admin.staff.create')" :current="request()->routeIs('admin.staff.create')" wire:navigate>{{ __('Add Staff') }}</flux:navlist.item>
                     @endif
 
+                    @if(auth()->check() && auth()->user()->isAdmin())
                     <flux:navlist.item icon="banknotes" :href="route('admin.pos')" :current="request()->routeIs('admin.pos')" wire:navigate>{{ __('POS') }}</flux:navlist.item>
-                   <flux:navlist.item icon="layout-grid" :href="route('admin.orders.index')" :current="request()->routeIs('admin.orders.*')" wire:navigate>{{ __('Orders') }}</flux:navlist.item>
+                    @endif
+
+                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isStaff()))
+                   <flux:navlist.item icon="layout-grid" :href="(auth()->user()->isAdmin() ? route('admin.orders.index') : route('staff.orders.index'))" :current="request()->routeIs(auth()->user()->isAdmin() ? 'admin.orders.*' : 'staff.orders.*')" wire:navigate>{{ __('Orders') }}</flux:navlist.item>
+                    @endif
                 </flux:navlist.group>
             </flux:navlist>
 

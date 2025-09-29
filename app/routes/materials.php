@@ -11,6 +11,10 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     Route::get('/materials/{material}/stock-in', [MaterialController::class, 'showStockInForm'])->name('materials.stock-in.form');
     Route::post('/materials/{material}/stock-in', [MaterialController::class, 'stockIn'])->name('materials.stock-in');
 
+    // New: stock-out
+    Route::get('/materials/{material}/stock-out', [MaterialController::class, 'showStockOutForm'])->name('materials.stock-out.form');
+    Route::post('/materials/{material}/stock-out', [MaterialController::class, 'stockOut'])->name('materials.stock-out');
+
     // Material request routes
     Route::get('/materials/request/form', [MaterialController::class, 'showRequestForm'])->name('materials.request.form');
     Route::post('/materials/request/submit', [MaterialController::class, 'submitRequest'])->name('materials.submit-request');
