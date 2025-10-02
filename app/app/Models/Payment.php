@@ -17,12 +17,14 @@ class Payment extends Model
         'currency',
         'reference',
         'paid_at',
+        'due_date',
         'payload',
         'error_message',
     ];
 
     protected $casts = [
         'paid_at' => 'datetime',
+        'due_date' => 'date',
         'payload' => 'array',
     ];
 

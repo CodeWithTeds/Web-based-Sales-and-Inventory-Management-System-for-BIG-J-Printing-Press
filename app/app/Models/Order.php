@@ -15,7 +15,9 @@ class Order extends Model
     protected $fillable = [
         'order_number',
         'customer_name',
+        'customer_email',
         'total',
+        'downpayment',
         'status',
         'delivery_status',
         'user_id',
@@ -54,5 +56,12 @@ class Order extends Model
     public function getTotalAmountAttribute(): float
     {
         return (float) ($this->total ?? 0);
+    }
+
+    public function getRemainingBalanceAttribute(): float
+    {
+        $down = (float) ($this->downpayment ?? 0);
+        $total = (float) ($this->total ?? 0);
+        return max($total - $down, 0);
     }
 }

@@ -67,8 +67,61 @@
             <input id="customer_name" name="customer_name" type="text" class="w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" form="pos-checkout-form" placeholder="Enter customer name (optional)">
         </div>
 
+        <div class="mt-3">
+            <label for="customer_email" class="block text-sm text-gray-700 mb-1">Customer Email</label>
+            <input id="customer_email" name="customer_email" type="email" class="w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" form="pos-checkout-form" placeholder="Enter customer email (optional)">
+        </div>
+
+        <div class="mt-3 grid grid-cols-2 gap-3">
+            <div>
+                <label for="downpayment" class="block text-sm text-gray-700 mb-1">Downpayment</label>
+                <input id="downpayment" name="downpayment" type="number" step="0.01" min="0" class="w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" form="pos-checkout-form" placeholder="0.00">
+            </div>
+            <div>
+                <label for="due_date" class="block text-sm text-gray-700 mb-1">Due Date</label>
+                <input id="due_date" name="due_date" type="date" class="w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" form="pos-checkout-form">
+            </div>
+        </div>
+
+        <div class="mt-3 bg-gray-50 rounded-md p-3">
+            <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-600">Order Total</span>
+                <span class="font-semibold">₱{{ number_format($total, 2) }}</span>
+            </div>
+            <div class="flex items-center justify-between text-sm mt-1">
+                <span class="text-gray-600">Downpayment</span>
+                <span class="font-semibold">₱<span id="downpayment-display">0.00</span></span>
+            </div>
+            <div class="flex items-center justify-between text-sm mt-1">
+                <span class="text-gray-600">Remaining Balance</span>
+                <span class="font-semibold">₱<span id="remaining-balance-display">{{ number_format($total, 2) }}</span></span>
+            </div>
+        </div>
+
+        <script>
+            (function(){
+                const total = <?= json_encode((float) $total) ?>;
+                const downEl = document.getElementById('downpayment');
+                const downDisp = document.getElementById('downpayment-display');
+                const remDisp = document.getElementById('remaining-balance-display');
+                function fmt(n){return (Number(n)||0).toFixed(2)}
+                function recompute(){
+                    let down = parseFloat(downEl?.value || '0');
+                    if (isNaN(down) || down < 0) down = 0;
+                    if (down > total) down = total;
+                    const rem = Math.max(total - down, 0);
+                    if (downDisp) downDisp.textContent = fmt(down);
+                    if (remDisp) remDisp.textContent = fmt(rem);
+                }
+                if (downEl) {
+                    downEl.addEventListener('input', recompute);
+                    recompute();
+                }
+            })();
+        </script>
+
         <div class="mt-3 flex items-center gap-2">
-            <form id="pos-checkout-form" method="POST" action="{{ route((($routePrefix ?? 'admin.pos') . '.checkout')) }}" hx-post="{{ route((($routePrefix ?? 'admin.pos') . '.checkout')) }}" hx-include="#customer_name" hx-target="#pos-cart" hx-swap="outerHTML">
+            <form id="pos-checkout-form" method="POST" action="{{ route((($routePrefix ?? 'admin.pos') . '.checkout')) }}" hx-post="{{ route((($routePrefix ?? 'admin.pos') . '.checkout')) }}" hx-include="#customer_name, #customer_email, #downpayment, #due_date" hx-target="#pos-cart" hx-swap="outerHTML">
                 @csrf
                 <button class="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700" @disabled(empty($cart))>
                     Checkout

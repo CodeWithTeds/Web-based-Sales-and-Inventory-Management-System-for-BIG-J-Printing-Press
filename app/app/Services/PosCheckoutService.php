@@ -29,6 +29,9 @@ class PosCheckoutService
         }
 
         $customerName = trim((string) ($payload['customer_name'] ?? ''));
+        $customerEmail = trim((string) ($payload['customer_email'] ?? ''));
+        $downpayment = (float) ($payload['downpayment'] ?? 0);
+        $dueDate = $payload['due_date'] ?? null;
         if ($customerName === '') {
             // Default to a generic label when no name is provided
             $customerName = 'Walk-in Customer';
@@ -87,10 +90,15 @@ class PosCheckoutService
             // Fetch current user's saved address (if any)
             $userAddress = $this->address->getUserAddress();
 
+            // Clamp downpayment to be <= total
+            if ($downpayment < 0) { $downpayment = 0; }
+
             $orderData = [
                 'order_number' => 'POS-' . now()->format('YmdHis') . '-' . random_int(100, 999),
                 'customer_name' => $customerName,
+                'customer_email' => ($customerEmail !== '' ? $customerEmail : null),
                 'total' => $total,
+                'downpayment' => min($downpayment, $total),
                 'status' => 'completed',
                 'user_id' => Auth::id(),
                 'user_address_id' => $userAddress->id ?? null,
@@ -98,6 +106,22 @@ class PosCheckoutService
 
             $order = $this->checkoutRepo->processCheckout($orderData, $items, $requirements, $isClientOrdering);
             $this->cart->clear();
+
+            // When admin POS and there is a downpayment or due date, record a Payment entry
+            if (!$isClientOrdering && ($downpayment > 0 || !empty($dueDate))) {
+                // We don't have payment method integration here; store metadata
+                \App\Models\Payment::create([
+                    'order_id' => $order->id,
+                    'provider' => 'pos',
+                    'method' => 'cash',
+                    'amount' => max($downpayment, 0),
+                    'currency' => 'PHP',
+                    'reference' => 'POSDP-' . now()->format('YmdHis'),
+                    'paid_at' => $downpayment > 0 ? now() : null,
+                    'due_date' => $dueDate ? \Carbon\Carbon::parse($dueDate) : null,
+                ]);
+            }
+
             return [ 'success' => true, 'order' => $order, 'error' => null ];
         } catch (\Throwable $e) {
             return [ 'success' => false, 'order' => null, 'error' => $e->getMessage() ];

@@ -58,8 +58,11 @@
                             </div>
                         </div>
 
-                        <!-- Right: Order Summary -->
-                        <div class="lg:col-span-1">
+                        <!-- Right: Outstanding Balances + Order Summary -->
+                        <div class="lg:col-span-1 space-y-4">
+                            {{-- Outstanding Balances removed per request --}}
+
+                            <!-- Order Summary -->
                             @include('admin.partials.pos-cart', [
                                 'cart' => $cart,
                                 'total' => $total,

@@ -15,6 +15,9 @@ class PosCheckoutRequest extends FormRequest
     {
         return [
             'customer_name' => ['nullable', 'string', 'max:255'],
+            'customer_email' => ['nullable', 'email', 'max:255'],
+            'downpayment' => ['nullable', 'numeric', 'min:0'],
+            'due_date' => ['nullable', 'date'],
         ];
     }
 }

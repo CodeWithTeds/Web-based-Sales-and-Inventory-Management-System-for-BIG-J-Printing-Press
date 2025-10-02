@@ -17,6 +17,8 @@ require __DIR__ . '/products.php';
 require __DIR__ . '/pos.php';
 require __DIR__ . '/suppliers.php';
 require __DIR__ . '/drivers.php';
+require __DIR__ . '/balances.php';
+require __DIR__ . '/outstanding-balances.php';
 
 Route::get('/', function () {
     return view('landing');

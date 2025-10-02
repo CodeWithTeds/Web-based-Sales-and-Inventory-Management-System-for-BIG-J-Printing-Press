@@ -3,24 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Receipt #{{ $order->order_number }}</title>
+    <title>Receipt</title>
     <style>
-        /* Thermal receipt look */
-        body{background:#f3f4f6;color:#111827;font-family: DejaVu Sans, Arial, sans-serif;}
-        .ticket{width:320px;margin:24px auto;background:#fff;border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,.08);padding:14px 16px;}
-        .zigzag{height:10px;background:repeating-linear-gradient(90deg,#fff 0 8px,transparent 8px 16px),
-                         linear-gradient(#e5e7eb,#e5e7eb);background-size:16px 8px,100% 2px;background-repeat:repeat,no-repeat;background-position:top;}
-        .header{text-align:center;margin-top:6px}
-        .shop{font-weight:700;letter-spacing:1px}
+        body{font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif}
+        .ticket{max-width:360px;margin:0 auto;border:1px dashed #ccc;border-radius:10px;padding:12px}
+        .zigzag{height:8px;background-image:linear-gradient(135deg,#fff 25%,#0000 25%),linear-gradient(225deg,#fff 25%,#0000 25%);background-position:0 0,0 0;background-size:8px 8px;border-top-left-radius:10px;border-top-right-radius:10px}
+        .header{text-align:center;margin-bottom:8px}
+        .shop{font-weight:700}
         .muted{color:#6b7280;font-size:12px}
-        .section-title{text-align:center;font-weight:700;margin:10px 0;font-size:13px;letter-spacing:1px}
-        .sep{margin:8px 0;text-align:center;color:#9ca3af;font-size:12px;letter-spacing:2px}
-        table{width:100%;border-collapse:collapse}
-        th,td{font-size:12px;padding:6px 0;border-bottom:1px dashed #e5e7eb}
+        table{width:100%;border-collapse:collapse;margin-top:8px}
+        th,td{padding:6px 4px;border-bottom:1px dashed #e5e7eb;font-size:12px}
         th{text-align:left;color:#6b7280}
-        td.price, th.price{text-align:right}
-        .total{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:8px 0;border-top:2px dotted #111827;font-weight:700}
-        .actions{margin-top:12px;text-align:center}
+        .price{text-align:right}
+        .total{display:flex;justify-content:space-between;margin-top:8px;font-weight:600}
+        .actions{margin-top:10px;text-align:center}
         .btn{display:inline-block;background:#111827;color:#fff;text-decoration:none;border-radius:6px;padding:8px 10px;font-size:12px}
         .thanks{text-align:center;margin-top:10px;font-size:12px;color:#6b7280}
         /* PDF hint: avoid anchors when generating PDF */
@@ -47,10 +43,13 @@
         @if(!empty($order->customer_name))
             <div class="muted" style="text-align:center;margin-bottom:8px;">Customer: {{ $order->customer_name }}</div>
         @endif
+        @if(!empty($order->customer_email))
+            <div class="muted" style="text-align:center;margin-bottom:8px;">Email: {{ $order->customer_email }}</div>
+        @endif
         @if(($routePrefix ?? 'admin.pos') === 'client.ordering')
             <div class="muted" style="text-align:center;margin-bottom:8px;">Payment: GCash (PayMongo Checkout)</div>
         @else
-            <div class="muted" style="text-align:center;margin-bottom:8px;">Payment: Cash</div>
+
         @endif
 
         <table>
@@ -75,15 +74,29 @@
             <div>Total</div>
             <div>₱{{ number_format($order->total, 2) }}</div>
         </div>
+        <div class="total">
+            <div>Downpayment</div>
+            <div>₱{{ number_format(($order->downpayment ?? 0), 2) }}</div>
+        </div>
+        <div class="total">
+            <div>Remaining Balance</div>
+            <div>₱{{ number_format(($order->remaining_balance ?? 0), 2) }}</div>
+        </div>
+        @php
+            $latestPayment = ($order->payments ?? collect())
+                ->sortByDesc(function($p){ return $p->paid_at ?? $p->created_at; })
+                ->first();
+        @endphp
+        @if(!empty($latestPayment?->due_date))
+            <div class="muted" style="text-align:center;margin-top:4px;">Due Date: {{ $latestPayment->due_date->format('Y-m-d') }}</div>
+        @endif
 
-        @empty($download)
+        @if(empty($download))
             <div class="actions">
-                @php
-                    $routePrefix = $routePrefix ?? 'admin.pos';
-                @endphp
+                @php $routePrefix = $routePrefix ?? 'admin.pos'; @endphp
                 <a href="{{ route($routePrefix . '.receipt.download', $order) }}" class="btn btn-primary">{{ __('Download PDF') }}</a>
             </div>
-        @endempty
+        @endif
 
         <div class="sep">******************************</div>
         <div class="thanks">THANK YOU!</div>

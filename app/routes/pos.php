@@ -15,6 +15,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::post('/pos/checkout', [PosController::class, 'checkout'])->name('admin.pos.checkout');
     Route::get('/pos/receipt/{order}', [PosController::class, 'receipt'])->name('admin.pos.receipt');
     Route::get('/pos/receipt/{order}/download', [PosController::class, 'receiptDownload'])->name('admin.pos.receipt.download');
+
+    // Send balance reminder email
+    Route::post('/pos/reminder/{order}', [PosController::class, 'sendReminder'])->name('admin.pos.reminder');
 });
 
 // Client-facing Online Ordering (reuses POS)

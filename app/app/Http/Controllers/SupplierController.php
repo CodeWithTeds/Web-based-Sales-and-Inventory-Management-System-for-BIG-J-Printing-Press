@@ -139,10 +139,14 @@ class SupplierController extends BaseController
 
     protected function validateRequest(Request $request, $id = null)
     {
+        $uniqueRules = $id ? '|unique:suppliers,name,'.$id : '|unique:suppliers,name';
+        $emailUniqueRules = $id ? '|unique:suppliers,email,'.$id : '|unique:suppliers,email';
+        $phoneUniqueRules = $id ? '|unique:suppliers,phone,'.$id : '|unique:suppliers,phone';
+        
         return $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:50',
+            'name' => 'required|string|max:255'.$uniqueRules,
+            'email' => 'nullable|email|max:255'.$emailUniqueRules,
+            'phone' => 'nullable|string|max:50'.$phoneUniqueRules,
             'address' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
             'status' => 'nullable|string|in:active,inactive',

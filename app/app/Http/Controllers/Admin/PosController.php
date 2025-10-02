@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route as RouteFacade;
 use App\Http\Requests\PosCheckoutRequest;
 use App\Traits\HandlesPosErrors;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\BalanceReminderMail;
 
 class PosController extends Controller
 {
@@ -228,7 +230,7 @@ class PosController extends Controller
 
     public function receipt(Order $order)
     {
-        $order->load('items');
+        $order->load('items', 'payments');
         $ctx = $this->getContext();
         return view('admin.pos-receipt', [
             'order' => $order,
@@ -238,9 +240,14 @@ class PosController extends Controller
 
     public function receiptDownload(Order $order)
     {
-        $order->load('items');
+        $order->load('items', 'payments');
+        $ctx = $this->getContext();
         // Render the Blade view to HTML
-        $html = view('admin.pos-receipt', ['order' => $order, 'download' => true])->render();
+        $html = view('admin.pos-receipt', [
+            'order' => $order,
+            'download' => true,
+            'routePrefix' => $ctx['routePrefix']
+        ])->render();
 
         // Configure Dompdf
         $options = new Options();
@@ -321,5 +328,25 @@ class PosController extends Controller
     {
         session()->forget('paymongo.checkout_session_id');
         return redirect()->route('client.ordering')->with('error', 'Payment canceled.');
+    }
+
+    // Send outstanding balance reminder email
+    public function sendReminder(Order $order)
+    {
+        // Ensure we have customer email
+        $email = trim((string) $order->customer_email);
+        if ($email === '') {
+            return back()->with('error', 'Customer email is missing for this order.');
+        }
+
+        // Compute remaining and latest due date
+        $remaining = (float) ($order->remaining_balance ?? 0);
+        $latestDue = $order->payments()->whereNotNull('due_date')->orderByDesc('due_date')->first();
+        $dueDate = $latestDue?->due_date;
+
+        // Send mailable
+        Mail::to($email)->send(new BalanceReminderMail($order, $remaining, $dueDate));
+
+        return back()->with('success', 'Reminder email sent to ' . $email);
     }
 }
