@@ -27,6 +27,7 @@
 
                     @if(auth()->check() && auth()->user()->isAdmin())
                     <flux:navlist.item icon="banknotes" :href="route('admin.pos')" :current="request()->routeIs('admin.pos')" wire:navigate>{{ __('POS') }}</flux:navlist.item>
+                    <flux:navlist.item icon="clipboard-document-list" :href="route('admin.activity-logs.index')" :current="request()->routeIs('admin.activity-logs.*')" wire:navigate>{{ __('Activity Logs') }}</flux:navlist.item>
                     @endif
 
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isStaff()))

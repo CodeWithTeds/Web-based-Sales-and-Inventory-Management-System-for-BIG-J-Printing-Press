@@ -14,7 +14,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
+            // Add activity logger middleware alias
+            'activity' => \App\Http\Middleware\ActivityLogger::class,
         ]);
+        // Apply activity logger to all web routes (it will only log for staff and client users)
+        $middleware->appendToGroup('web', [\App\Http\Middleware\ActivityLogger::class]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

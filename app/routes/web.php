@@ -152,6 +152,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 
         return redirect()->route('admin.staff.create')->with('status', 'Staff user created successfully.');
     })->name('admin.staff.store');
+
+    // Activity Logs (admin can view all)
+    Route::get('/activity-logs', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('admin.activity-logs.index');
 });
 
 // Staff routes
@@ -187,6 +190,9 @@ Route::middleware(['auth', 'verified', 'role:staff'])->prefix('staff')->group(fu
     Route::get('/orders', [\App\Http\Controllers\Admin\OrdersController::class, 'index'])->name('staff.orders.index');
     Route::get('/orders/{order}', [\App\Http\Controllers\Admin\OrdersController::class, 'show'])->name('staff.orders.show');
     Route::put('/orders/{order}/delivery-status', [\App\Http\Controllers\Admin\OrdersController::class, 'updateDeliveryStatus'])->name('staff.orders.delivery.update');
+
+    // My Activity Logs (staff sees own)
+    Route::get('/activity-logs', [\App\Http\Controllers\Staff\ActivityLogController::class, 'index'])->name('staff.activity-logs.index');
 });
 
 // Driver routes
