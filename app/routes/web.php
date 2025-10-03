@@ -247,3 +247,19 @@ Route::middleware(['auth'])->get('/map/orders', function () {
 })->name('orders.map.alt');
 
 require __DIR__ . '/auth.php';
+
+// Client routes
+Route::middleware(['auth', 'verified', 'role:client'])->prefix('client')->group(function () {
+    Route::get('/orders', function () {
+        $orders = \App\Models\Order::where('user_id', \Illuminate\Support\Facades\Auth::id())
+            ->latest()
+            ->paginate(15);
+        $title = __('My Orders');
+        return view('client.orders.index', compact('orders', 'title'));
+    })->name('client.orders.index');
+
+    Route::get('/orders/{order}', function (\App\Models\Order $order) {
+        abort_unless($order->user_id === \Illuminate\Support\Facades\Auth::id(), 403);
+        return view('client.orders.show', compact('order'));
+    })->name('client.orders.show');
+});

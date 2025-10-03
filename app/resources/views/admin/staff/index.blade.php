@@ -23,6 +23,9 @@
                                 {{ $metrics['total'] ?? ($items->total() ?? 0) }}
                             </span>
                         </p>
+                        <a href="{{ route('admin.staff.create') }}" class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white rounded-md text-xs font-semibold hover:bg-indigo-700">
+                            {{ __('Add Staff') }}
+                        </a>
                     </div>
 
                     <div class="overflow-x-auto">
