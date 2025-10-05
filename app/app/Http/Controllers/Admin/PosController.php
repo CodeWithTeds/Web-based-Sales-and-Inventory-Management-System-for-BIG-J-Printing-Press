@@ -132,6 +132,16 @@ class PosController extends Controller
     {
         $validated = $request->validated();
 
+        // Handle optional attachment upload
+        $attachmentPath = null;
+        if ($request->hasFile('attachment')) {
+            try {
+                $attachmentPath = $request->file('attachment')->store('order-attachments', 'public');
+            } catch (\Throwable $e) {
+                return $this->respondCheckoutFailure(['error' => 'Failed to upload attachment: ' . $e->getMessage()], $request);
+            }
+        }
+
         $ctx = $this->getContext();
         if ($ctx['routePrefix'] === 'client.ordering') {
             // Online ordering: Start PayMongo Checkout (GCash only)
@@ -139,6 +149,12 @@ class PosController extends Controller
             if (empty($cart)) {
                 return $this->respondCheckoutFailure(['error' => 'Cart is empty.'], $request);
             }
+
+            // Persist attachment and customer email for success callback
+            if ($attachmentPath) {
+                session()->put('paymongo.attachment_path', $attachmentPath);
+            }
+            session()->put('paymongo.customer_email', $validated['customer_email'] ?? null);
 
             $lineItems = [];
             foreach ($cart as $item) {
@@ -211,6 +227,9 @@ class PosController extends Controller
         }
 
         // Admin POS checkout: process immediately
+        if ($attachmentPath) {
+            $validated['attachment_path'] = $attachmentPath;
+        }
         $result = $this->checkoutService->checkout($validated);
 
         if (!$result['success']) {
@@ -302,9 +321,15 @@ class PosController extends Controller
         }
 
         $customerName = session()->pull('paymongo.customer_name');
+        $customerEmail = session()->pull('paymongo.customer_email');
+        $attachmentPath = session()->pull('paymongo.attachment_path');
         session()->forget('paymongo.checkout_session_id');
 
-        $result = $this->checkoutService->checkout(['customer_name' => $customerName]);
+        $result = $this->checkoutService->checkout([
+            'customer_name' => $customerName,
+            'customer_email' => $customerEmail,
+            'attachment_path' => $attachmentPath,
+        ]);
         if (!$result['success']) {
             return redirect()->route('client.ordering')->with('error', $result['error'] ?? 'Checkout failed.');
         }

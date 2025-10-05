@@ -18,6 +18,7 @@ class PosCheckoutRequest extends FormRequest
             'customer_email' => ['nullable', 'email', 'max:255'],
             'downpayment' => ['nullable', 'numeric', 'min:0'],
             'due_date' => ['nullable', 'date'],
+            'attachment' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
         ];
     }
 }

@@ -102,6 +102,7 @@ class PosCheckoutService
                 'status' => 'completed',
                 'user_id' => Auth::id(),
                 'user_address_id' => $userAddress->id ?? null,
+                'attachment_path' => $payload['attachment_path'] ?? null,
             ];
 
             $order = $this->checkoutRepo->processCheckout($orderData, $items, $requirements, $isClientOrdering);
@@ -120,6 +121,11 @@ class PosCheckoutService
                     'paid_at' => $downpayment > 0 ? now() : null,
                     'due_date' => $dueDate ? \Carbon\Carbon::parse($dueDate) : null,
                 ]);
+            }
+
+            // If attachment_path was provided, keep it on the order instance
+            if (!empty($payload['attachment_path'])) {
+                $order->attachment_path = $payload['attachment_path'];
             }
 
             return [ 'success' => true, 'order' => $order, 'error' => null ];

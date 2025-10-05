@@ -83,6 +83,12 @@
             </div>
         </div>
 
+        <div class="mt-3">
+            <label for="attachment" class="block text-sm text-gray-700 mb-1">Attachment (optional)</label>
+            <input id="attachment" name="attachment" type="file" accept=".pdf,image/*" class="w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" form="pos-checkout-form">
+            <p class="mt-1 text-xs text-gray-500">Upload a design, instructions, or reference image/PDF.</p>
+        </div>
+
         <div class="mt-3 bg-gray-50 rounded-md p-3">
             <div class="flex items-center justify-between text-sm">
                 <span class="text-gray-600">Order Total</span>
@@ -121,7 +127,7 @@
         </script>
 
         <div class="mt-3 flex items-center gap-2">
-            <form id="pos-checkout-form" method="POST" action="{{ route((($routePrefix ?? 'admin.pos') . '.checkout')) }}" hx-post="{{ route((($routePrefix ?? 'admin.pos') . '.checkout')) }}" hx-include="#customer_name, #customer_email, #downpayment, #due_date" hx-target="#pos-cart" hx-swap="outerHTML">
+            <form id="pos-checkout-form" method="POST" action="{{ route((($routePrefix ?? 'admin.pos') . '.checkout')) }}" hx-post="{{ route((($routePrefix ?? 'admin.pos') . '.checkout')) }}" hx-include="#customer_name, #customer_email, #downpayment, #due_date, #attachment" hx-encoding="multipart/form-data" enctype="multipart/form-data" hx-target="#pos-cart" hx-swap="outerHTML">
                 @csrf
                 <button class="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700" @disabled(empty($cart))>
                     Checkout

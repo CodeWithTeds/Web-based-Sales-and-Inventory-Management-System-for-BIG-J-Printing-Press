@@ -22,6 +22,7 @@ class Order extends Model
         'delivery_status',
         'user_id',
         'user_address_id',
+        'attachment_path',
     ];
 
     // Expose a virtual total_amount attribute for legacy references

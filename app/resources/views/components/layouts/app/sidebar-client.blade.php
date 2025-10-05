@@ -19,7 +19,7 @@
                     <flux:navlist.item icon="banknotes" :href="route('client.ordering')" :current="request()->routeIs('client.ordering*')" wire:navigate>{{ __('Online Ordering') }}</flux:navlist.item>
                     <flux:navlist.item icon="map-pin" :href="route('address.edit')">{{ __('Address') }}</flux:navlist.item>
                     <flux:navlist.item icon="layout-grid" :href="route('client.orders.index')" :current="request()->routeIs('client.orders.*')" wire:navigate>{{ __('My Orders') }}</flux:navlist.item>
-                     
+            
                 </flux:navlist.group>
             </flux:navlist>
 

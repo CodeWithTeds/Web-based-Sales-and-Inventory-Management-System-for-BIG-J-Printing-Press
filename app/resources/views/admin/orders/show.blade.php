@@ -66,6 +66,13 @@
                     </div>
                 </div>
                 @endif
+
+                @if(!empty($order->attachment_path))
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-700 mb-2">Attachment</h3>
+                    <a href="{{ Storage::url($order->attachment_path) }}" target="_blank" class="inline-flex items-center px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">View Attachment</a>
+                </div>
+                @endif
                 </div>
 
                 <div>
