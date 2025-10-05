@@ -74,10 +74,12 @@
             <div>Total</div>
             <div>₱{{ number_format($order->total, 2) }}</div>
         </div>
+        @if($rp !== 'client.ordering')
         <div class="total">
             <div>Downpayment</div>
             <div>₱{{ number_format(($order->downpayment ?? 0), 2) }}</div>
         </div>
+        @endif
         <div class="total">
             <div>Remaining Balance</div>
             <div>₱{{ number_format(($order->remaining_balance ?? 0), 2) }}</div>
@@ -87,8 +89,8 @@
                 ->sortByDesc(function($p){ return $p->paid_at ?? $p->created_at; })
                 ->first();
         @endphp
-        @if(!empty($latestPayment?->due_date))
-            <div class="muted" style="text-align:center;margin-top:4px;">Due Date: {{ $latestPayment->due_date->format('Y-m-d') }}</div>
+        @if($rp !== 'client.ordering' && !empty($latestPayment?->due_date))
+        <div class="muted" style="text-align:center;margin-top:4px;">Due Date: {{ $latestPayment->due_date->format('Y-m-d') }}</div>
         @endif
 
         @if(empty($download))

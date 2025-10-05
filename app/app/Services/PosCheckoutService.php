@@ -93,6 +93,11 @@ class PosCheckoutService
             // Clamp downpayment to be <= total
             if ($downpayment < 0) { $downpayment = 0; }
 
+            // In client ordering, force downpayment to 0
+            if ($isClientOrdering) {
+                $downpayment = 0;
+            }
+
             $orderData = [
                 'order_number' => 'POS-' . now()->format('YmdHis') . '-' . random_int(100, 999),
                 'customer_name' => $customerName,

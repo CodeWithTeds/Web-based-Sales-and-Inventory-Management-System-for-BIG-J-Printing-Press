@@ -74,12 +74,16 @@
 
         <div class="mt-3 grid grid-cols-2 gap-3">
             <div>
+                @if((($routePrefix ?? 'admin.pos') !== 'client.ordering'))
                 <label for="downpayment" class="block text-sm text-gray-700 mb-1">Downpayment</label>
                 <input id="downpayment" name="downpayment" type="number" step="0.01" min="0" class="w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" form="pos-checkout-form" placeholder="0.00">
+                @endif
             </div>
             <div>
+                @if((($routePrefix ?? 'admin.pos') !== 'client.ordering'))
                 <label for="due_date" class="block text-sm text-gray-700 mb-1">Due Date</label>
                 <input id="due_date" name="due_date" type="date" class="w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" form="pos-checkout-form">
+                @endif
             </div>
         </div>
 
@@ -94,10 +98,12 @@
                 <span class="text-gray-600">Order Total</span>
                 <span class="font-semibold">₱{{ number_format($total, 2) }}</span>
             </div>
+            @if((($routePrefix ?? 'admin.pos') !== 'client.ordering'))
             <div class="flex items-center justify-between text-sm mt-1">
                 <span class="text-gray-600">Downpayment</span>
                 <span class="font-semibold">₱<span id="downpayment-display">0.00</span></span>
             </div>
+            @endif
             <div class="flex items-center justify-between text-sm mt-1">
                 <span class="text-gray-600">Remaining Balance</span>
                 <span class="font-semibold">₱<span id="remaining-balance-display">{{ number_format($total, 2) }}</span></span>
@@ -127,7 +133,7 @@
         </script>
 
         <div class="mt-3 flex items-center gap-2">
-            <form id="pos-checkout-form" method="POST" action="{{ route((($routePrefix ?? 'admin.pos') . '.checkout')) }}" hx-post="{{ route((($routePrefix ?? 'admin.pos') . '.checkout')) }}" hx-include="#customer_name, #customer_email, #downpayment, #due_date, #attachment" hx-encoding="multipart/form-data" enctype="multipart/form-data" hx-target="#pos-cart" hx-swap="outerHTML">
+            <form id="pos-checkout-form" method="POST" action="{{ route((($routePrefix ?? 'admin.pos') . '.checkout')) }}" hx-post="{{ route((($routePrefix ?? 'admin.pos') . '.checkout')) }}" hx-include="{{ (($routePrefix ?? 'admin.pos') === 'client.ordering') ? '#customer_name, #customer_email, #attachment' : '#customer_name, #customer_email, #downpayment, #due_date, #attachment' }}" hx-encoding="multipart/form-data" enctype="multipart/form-data" hx-target="#pos-cart" hx-swap="outerHTML">
                 @csrf
                 <button class="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700" @disabled(empty($cart))>
                     Checkout
