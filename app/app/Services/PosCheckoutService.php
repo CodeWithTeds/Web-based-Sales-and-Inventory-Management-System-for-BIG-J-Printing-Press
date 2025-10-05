@@ -45,6 +45,17 @@ class PosCheckoutService
             $currentRouteName = Route::currentRouteName();
             $isClientOrdering = is_string($currentRouteName) && str_contains($currentRouteName, 'client.ordering');
 
+            // For client ordering, auto-fill customer details from the authenticated user
+            if ($isClientOrdering) {
+                $user = Auth::user();
+                if (empty($customerEmail)) {
+                    $customerEmail = $user?->email ?? '';
+                }
+                if (trim($customerName) === '' || $customerName === 'Walk-in Customer') {
+                    $customerName = $user?->name ?? 'Online Customer';
+                }
+            }
+
             // Build requirements and items
             $requirements = [];
             $items = [];

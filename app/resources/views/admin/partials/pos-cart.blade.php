@@ -62,15 +62,19 @@
             <span class="font-semibold">₱{{ number_format($total, 2) }}</span>
         </div>
 
+        @if((($routePrefix ?? 'admin.pos') !== 'client.ordering'))
         <div class="mt-3">
             <label for="customer_name" class="block text-sm text-gray-700 mb-1">Customer Name</label>
             <input id="customer_name" name="customer_name" type="text" class="w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" form="pos-checkout-form" placeholder="Enter customer name (optional)">
         </div>
+        @endif
 
+        @if((($routePrefix ?? 'admin.pos') !== 'client.ordering'))
         <div class="mt-3">
             <label for="customer_email" class="block text-sm text-gray-700 mb-1">Customer Email</label>
             <input id="customer_email" name="customer_email" type="email" class="w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" form="pos-checkout-form" placeholder="Enter customer email (optional)">
         </div>
+        @endif
 
         <div class="mt-3 grid grid-cols-2 gap-3">
             <div>
