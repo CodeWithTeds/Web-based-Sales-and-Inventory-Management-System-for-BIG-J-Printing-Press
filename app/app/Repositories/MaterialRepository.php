@@ -18,6 +18,18 @@ class MaterialRepository extends BaseRepository implements MaterialRepositoryInt
     }
 
     /**
+     * Override paginate to sort low-stock materials first
+     */
+    public function paginate(int $perPage = 15, array $columns = ['*'])
+    {
+        return $this->model
+            ->orderByRaw('CASE WHEN quantity <= reorder_level THEN 0 ELSE 1 END ASC')
+            ->orderBy('quantity')
+            ->orderBy('name')
+            ->paginate($perPage, $columns);
+    }
+
+    /**
      * Add stock to a material
      *
      * @param int $id

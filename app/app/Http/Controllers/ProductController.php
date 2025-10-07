@@ -171,6 +171,33 @@ class ProductController extends BaseController
     }
 
     /**
+     * Validate the request payload for creating/updating products.
+     * Fallback when not using ProductRequest.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int|null  $id
+     * @return array
+     */
+    protected function validateRequest(Request $request, $id = null)
+    {
+        $nameUniqueRule = $id ? ('unique:products,name,' . $id) : 'unique:products,name';
+
+        return $request->validate([
+            'name' => 'required|string|max:255|' . $nameUniqueRule,
+            'description' => 'nullable|string',
+            'category' => 'required|string|max:100',
+            'price' => 'required|numeric|min:1',
+            'active' => 'boolean',
+            'notes' => 'nullable|string',
+            'material_ids' => 'nullable|array',
+            'material_ids.*' => 'exists:materials,id',
+            'quantities' => 'nullable|array',
+            'quantities.*' => 'numeric|min:0.01',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+    }
+
+    /**
      * Remove the specified resource from storage.
      *
      * @param  int  $id

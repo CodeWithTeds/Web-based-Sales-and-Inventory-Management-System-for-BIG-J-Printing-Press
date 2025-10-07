@@ -9,18 +9,37 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="min-h-screen bg-gray-50">
                 <div class="mx-auto py-4">
-                    <div class="flex items-center justify-between mb-6">
-                        <h1 class="text-2xl font-semibold text-gray-900">{{ $title ?? 'Point of Sale' }}</h1>
-                        <form method="GET" action="{{ route(($routePrefix ?? 'admin.pos')) }}" class="flex items-center space-x-3">
-                            <input type="text" name="search" value="{{ $search }}" placeholder="Search products..." class="w-64 rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" />
-                            <select name="category" class="rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" onchange="this.form.submit()">
+                    <div class="mb-6 space-y-4">
+                        <!-- Modern header (2025 style) -->
+                        <div class="rounded-2xl bg-gradient-to-r from-[var(--color-primary)] via-[var(--color-accent-brand)] to-[var(--color-primary)] text-white p-6 shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <h1 class="text-2xl font-semibold">{{ $title ?? 'Point of Sale' }}</h1>
+                                <span class="text-xs opacity-90">{{ now()->format('F j, Y') }}</span>
+                            </div>
+                            <p class="mt-2 text-sm opacity-90">Search products, filter by category, and attach design files.</p>
+                        </div>
+
+                        <!-- Filters: search + category select -->
+                        <form method="GET" action="{{ route(($routePrefix ?? 'admin.pos')) }}" class="flex flex-wrap items-center gap-3">
+                            <input type="text" name="search" value="{{ $search }}" placeholder="Search products..." class="flex-1 min-w-[240px] rounded-md border border-gray-300 bg-white text-zinc-800 placeholder-zinc-500 focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]" />
+                            <select name="category" class="rounded-md border border-gray-300 bg-white text-zinc-800 focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]" onchange="this.form.submit()">
                                 <option value="">All Categories</option>
                                 @foreach($categories as $cat)
                                     <option value="{{ $cat }}" @selected($category===$cat)>{{ $cat }}</option>
                                 @endforeach
                             </select>
-                            <a href="{{ route(($routePrefix ?? 'admin.pos')) }}" class="inline-flex items-center px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">Reset</a>
+                            <a href="{{ route(($routePrefix ?? 'admin.pos')) }}" class="inline-flex items-center px-3 py-2 bg-[var(--color-background)] text-zinc-800 rounded-md border border-zinc-200 hover:brightness-95">Reset</a>
+                            <a href="{{ route(($routePrefix ?? 'admin.pos')) }}?search={{ urlencode($search) }}" class="inline-flex items-center px-3 py-2 bg-[var(--color-primary)] text-white rounded-md shadow-sm hover:brightness-90">All Category</a>
                         </form>
+
+                        <!-- Visible category chips -->
+                        <div class="flex gap-2 overflow-x-auto py-1">
+                            @php($baseUrl = route(($routePrefix ?? 'admin.pos')))
+                            <a href="{{ $baseUrl }}?search={{ urlencode($search) }}" class="px-3 py-1.5 rounded-full text-xs border {{ empty($category) ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]' : 'bg-white text-zinc-700 border-zinc-300' }}">All Category</a>
+                            @foreach($categories as $cat)
+                                <a href="{{ $baseUrl }}?category={{ urlencode($cat) }}&search={{ urlencode($search) }}" class="px-3 py-1.5 rounded-full text-xs border {{ $category === $cat ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]' : 'bg-white text-zinc-700 border-zinc-300' }}">{{ $cat }}</a>
+                            @endforeach
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -45,10 +64,10 @@
                                             <p class="text-xs text-gray-500 truncate">{{ $product->category }}</p>
                                         </div>
                                         <div class="mt-2 flex items-center justify-between">
-                                            <span class="text-indigo-600 font-semibold">₱{{ number_format($product->price, 2) }}</span>
+                                            <span class="text-[var(--color-primary)] font-semibold">₱{{ number_format($product->price, 2) }}</span>
                                             <form method="POST" action="{{ route((($routePrefix ?? 'admin.pos') . '.add'), $product->id) }}" hx-post="{{ route((($routePrefix ?? 'admin.pos') . '.add'), $product->id) }}" hx-target="#pos-cart" hx-swap="outerHTML">
                                                 @csrf
-                                                <button class="inline-flex items-center px-2.5 py-1.5 bg-indigo-600 text-white text-xs rounded-md hover:bg-indigo-700">Add</button>
+                                                <button class="inline-flex items-center px-2.5 py-1.5 bg-[var(--color-primary)] text-white text-xs rounded-md hover:brightness-90">Add</button>
                                             </form>
                                         </div>
                                     </div>

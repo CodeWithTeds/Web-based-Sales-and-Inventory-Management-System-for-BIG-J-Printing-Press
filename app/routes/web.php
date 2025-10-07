@@ -28,17 +28,28 @@ Route::get('dashboard', function () {
     /** @var User|null $user */
     $user = Auth::user();
 
-    $deliveryByStatus = Order::where('user_id', Auth::id())
-        ->selectRaw('delivery_status, COUNT(*) as count')
-        ->groupBy('delivery_status')
-        ->pluck('count', 'delivery_status')
-        ->toArray();
+    // Use global counts for admins and staff; per-user counts for clients
+    $deliveryByStatus = ($user && ($user->isAdmin() || $user->isStaff()))
+        ? Order::selectRaw('delivery_status, COUNT(*) as count')
+            ->groupBy('delivery_status')
+            ->pluck('count', 'delivery_status')
+            ->toArray()
+        : Order::where('user_id', Auth::id())
+            ->selectRaw('delivery_status, COUNT(*) as count')
+            ->groupBy('delivery_status')
+            ->pluck('count', 'delivery_status')
+            ->toArray();
 
-    $ordersByStatus = Order::where('user_id', Auth::id())
-        ->selectRaw('status, COUNT(*) as count')
-        ->groupBy('status')
-        ->pluck('count', 'status')
-        ->toArray();
+    $ordersByStatus = ($user && ($user->isAdmin() || $user->isStaff()))
+        ? Order::selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray()
+        : Order::where('user_id', Auth::id())
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
 
     $recentOrders = Order::where('user_id', Auth::id())
         ->latest()->limit(10)->get();
@@ -56,7 +67,7 @@ Route::get('dashboard', function () {
         : collect();
 
     $recentPayments = Payment::with(['order'])
-        ->when($user && !$user->isAdmin(), function ($query) {
+        ->when($user && !($user->isAdmin() || $user->isStaff()), function ($query) {
             $query->whereHas('order', function ($oq) {
                 $oq->where('user_id', Auth::id());
             });
@@ -67,8 +78,8 @@ Route::get('dashboard', function () {
         'message' => __('Dashboard'),
         'deliveryByStatus' => $deliveryByStatus,
         'ordersByStatus' => $ordersByStatus,
-        'totalOrders' => $user && $user->isAdmin() ? Order::count() : Order::where('user_id', Auth::id())->count(),
-        'itemsSold' => $user && $user->isAdmin() ? OrderItem::sum('qty') : OrderItem::whereHas('order', function ($q) {
+        'totalOrders' => $user && ($user->isAdmin() || $user->isStaff()) ? Order::count() : Order::where('user_id', Auth::id())->count(),
+        'itemsSold' => $user && ($user->isAdmin() || $user->isStaff()) ? OrderItem::sum('qty') : OrderItem::whereHas('order', function ($q) {
             $q->where('user_id', Auth::id());
         })->sum('qty'),
         'recentOrders' => $recentOrders,

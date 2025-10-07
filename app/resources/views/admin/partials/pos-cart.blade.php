@@ -93,7 +93,27 @@
 
         <div class="mt-3">
             <label for="attachment" class="block text-sm text-gray-700 mb-1">Attachment (optional)</label>
-            <input id="attachment" name="attachment" type="file" accept=".pdf,image/*" class="w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" form="pos-checkout-form">
+            @if((($routePrefix ?? 'admin.pos') === 'client.ordering'))
+                <input id="attachment" name="attachment" type="file" accept=".pdf,image/*" class="hidden" form="pos-checkout-form">
+                <button type="button" class="inline-flex items-center px-3 py-2 bg-[var(--color-primary)] text-white rounded-md hover:brightness-90" onclick="document.getElementById('attachment').click()">
+                    Upload Attachment
+                </button>
+                <span id="attachment-file-label" class="ml-2 text-xs text-gray-600">No file selected</span>
+                <script>
+                    (function(){
+                        const input = document.getElementById('attachment');
+                        const label = document.getElementById('attachment-file-label');
+                        if (input) {
+                            input.addEventListener('change', function(){
+                                const name = (this.files && this.files[0]) ? this.files[0].name : 'No file selected';
+                                if (label) label.textContent = name;
+                            });
+                        }
+                    })();
+                </script>
+            @else
+                <input id="attachment" name="attachment" type="file" accept=".pdf,image/*" class="w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" form="pos-checkout-form">
+            @endif
             <p class="mt-1 text-xs text-gray-500">Upload a design, instructions, or reference image/PDF.</p>
         </div>
 
@@ -107,13 +127,14 @@
                 <span class="text-gray-600">Downpayment</span>
                 <span class="font-semibold">₱<span id="downpayment-display">0.00</span></span>
             </div>
-            @endif
             <div class="flex items-center justify-between text-sm mt-1">
                 <span class="text-gray-600">Remaining Balance</span>
                 <span class="font-semibold">₱<span id="remaining-balance-display">{{ number_format($total, 2) }}</span></span>
             </div>
+            @endif
         </div>
 
+        @if((($routePrefix ?? 'admin.pos') !== 'client.ordering'))
         <script>
             (function(){
                 const total = <?= json_encode((float) $total) ?>;
@@ -135,6 +156,7 @@
                 }
             })();
         </script>
+        @endif
 
         <div class="mt-3 flex items-center gap-2">
             <form id="pos-checkout-form" method="POST" action="{{ route((($routePrefix ?? 'admin.pos') . '.checkout')) }}" hx-post="{{ route((($routePrefix ?? 'admin.pos') . '.checkout')) }}" hx-include="{{ (($routePrefix ?? 'admin.pos') === 'client.ordering') ? '#customer_name, #customer_email, #attachment' : '#customer_name, #customer_email, #downpayment, #due_date, #attachment' }}" hx-encoding="multipart/form-data" enctype="multipart/form-data" hx-target="#pos-cart" hx-swap="outerHTML">

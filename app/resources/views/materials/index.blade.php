@@ -87,6 +87,7 @@
                     </div>
                 </div>
 
+                @if(auth()->check() && auth()->user()->isAdmin())
                 <!-- Total Inventory Value -->
                 <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 p-4 text-white shadow-md">
                     <div class="flex items-center justify-between">
@@ -116,6 +117,7 @@
                         </div>
                     </div>
                 </div>
+                @endif
             </div>
             @endisset
 
@@ -154,8 +156,10 @@
                                 <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                                 <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
                                 <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
+                                @if(auth()->check() && auth()->user()->isAdmin())
                                 <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
                                 <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Value</th>
+                                @endif
                                 <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                 <th scope="col" class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
@@ -167,8 +171,10 @@
                                 <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{{ $item->category }}</td>
                                 <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{{ $item->quantity }}</td>
                                 <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{{ $item->unit }}</td>
+                                @if(auth()->check() && auth()->user()->isAdmin())
                                 <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">₱{{ number_format($item->unit_price, 2) }}</td>
                                 <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">₱{{ number_format($item->getTotalValue(), 2) }}</td>
+                                @endif
                                 <td class="px-3 py-2 whitespace-nowrap text-sm">
                                     @if ($item->isLowStock())
                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
@@ -205,15 +211,17 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v-3m0 0V9m0 3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                         </a>
+                                        @if(auth()->check() && auth()->user()->isAdmin())
                                         <form method="POST" action="{{ route('materials.destroy', $item->id) }}" class="inline" onsubmit="return confirm('Are you sure you want to delete this material?');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="text-red-600 hover:text-red-900" title="Delete">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16" />
+                                                </svg>
                                             </button>
                                         </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>

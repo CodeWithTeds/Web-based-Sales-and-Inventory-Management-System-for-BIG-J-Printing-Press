@@ -85,7 +85,11 @@
                 </div>
                 <div class="mb-5 bg-white rounded-lg shadow-sm overflow-hidden">
                     <div class="p-4">
-                        <form method="GET" action="{{ route('admin.orders.index') }}" class="flex items-center space-x-3">
+                        @php
+                            // Dynamically determine route group (admin vs staff)
+                            $ordersRoutePrefix = request()->routeIs('staff.orders.*') ? 'staff.orders' : 'admin.orders';
+                        @endphp
+                        <form method="GET" action="{{ route($ordersRoutePrefix . '.index') }}" class="flex items-center space-x-3">
                             <div class="flex-grow">
                                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Search orders..." class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm" />
                             </div>
@@ -96,7 +100,7 @@
                                     </svg>
                                     Search
                                 </button>
-                                <a href="{{ route('admin.orders.index') }}" class="inline-flex items-center px-3 py-1.5 bg-gray-200 border border-transparent rounded-md font-medium text-xs text-gray-700 uppercase tracking-wider hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                                <a href="{{ route($ordersRoutePrefix . '.index') }}" class="inline-flex items-center px-3 py-1.5 bg-gray-200 border border-transparent rounded-md font-medium text-xs text-gray-700 uppercase tracking-wider hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                     </svg>
@@ -172,7 +176,7 @@
                                         </td>
                                         <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{{ $order->created_at?->format('Y-m-d H:i') }}</td>
                                         <td class="px-3 py-2 whitespace-nowrap text-right text-sm font-medium">
-                                            <a href="{{ route('admin.orders.show', $order) }}" class="text-indigo-600 hover:text-indigo-900">Details</a>
+                                            <a href="{{ route($ordersRoutePrefix . '.show', $order) }}" class="text-indigo-600 hover:text-indigo-900">Details</a>
                                         </td>
                                     </tr>
                                 @endforeach

@@ -24,7 +24,8 @@ class OrdersMap extends Component
     public function loadOrders()
     {
         $this->orders = Order::with(['user', 'userAddress', 'orderItems.product'])
-            // Include all orders that have a linked user address so we can pin them all on the map
+            // Show only active orders on the driver map
+            ->whereIn('delivery_status', ['pending', 'preparing', 'out_for_delivery'])
             ->whereHas('userAddress')
             ->orderBy('created_at', 'desc')
             ->get()

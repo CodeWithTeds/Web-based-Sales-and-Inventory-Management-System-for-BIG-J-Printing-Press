@@ -174,7 +174,9 @@ class MaterialController extends BaseController
      */
     protected function validateRequest(Request $request, $id = null)
     {
-        return $request->all();
+        // Validate using MaterialRequest rules when FormRequest binding is not used
+        $rules = (new MaterialRequest())->rules();
+        return $request->validate($rules);
     }
 
     /**

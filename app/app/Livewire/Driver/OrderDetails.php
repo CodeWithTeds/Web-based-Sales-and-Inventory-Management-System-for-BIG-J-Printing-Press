@@ -19,9 +19,9 @@ class OrderDetails extends Component
         $this->orderItems = $this->order->orderItems->map(function ($item) {
             return [
                 'product_name' => $item->product->name,
-                'quantity' => $item->quantity,
+                'quantity' => $item->qty,
                 'price' => $item->price,
-                'subtotal' => $item->quantity * $item->price
+                'subtotal' => $item->qty * $item->price
             ];
         });
     }

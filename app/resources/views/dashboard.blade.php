@@ -28,10 +28,6 @@
                         <p class="text-xs text-white/90 opacity-90">{{ __('Total Orders') }}</p>
                         <p class="text-lg font-semibold text-white">{{ number_format($totalOrders ?? 0) }}</p>
                     </div>
-                    <div class="rounded-xl bg-white/10 p-3 backdrop-blur-sm">
-                        <p class="text-xs text-white/90 opacity-90">{{ __('Items Sold') }}</p>
-                        <p class="text-lg font-semibold text-white">{{ number_format($itemsSold ?? 0) }}</p>
-                    </div>
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isStaff()))
                     <div class="rounded-xl bg-white/10 p-3 backdrop-blur-sm">
                         <p class="text-xs text-white/90 opacity-90">{{ __('Active Users') }}</p>
@@ -48,6 +44,20 @@
             <!-- Background pattern -->
             <div class="absolute inset-0 z-0 opacity-10">
                 <div class="absolute inset-0 bg-gradient-to-br from-[#D62F1A]/20 to-[#BB822B]/20"></div>
+            </div>
+        </div>
+
+        <!-- Out for Deliveries card -->
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div class="rounded-2xl bg-white p-6 shadow-lg border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">{{ __('Out for Deliveries') }}</h3>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#D62F1A]" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h13l5 5v5H3z M16 7v5h5"/></svg>
+                </div>
+                <div class="mt-4">
+                    <p class="text-3xl font-bold text-[#D62F1A]">{{ $deliveryByStatus['out_for_delivery'] ?? 0 }}</p>
+                    <p class="text-sm text-gray-600 mt-1">{{ __('Total orders currently out for delivery') }}</p>
+                </div>
             </div>
         </div>
 
@@ -101,7 +111,7 @@
                          </svg>
                      </div>
                      <p class="text-sm text-gray-600">{{ __('Total Orders') }}</p>
-                     <p class="text-lg font-semibold text-[#D62F1A]">{{ App\Models\Order::count() }}</p>
+                     <p class="text-lg font-semibold text-[#D62F1A]">{{ number_format($totalOrders ?? 0) }}</p>
                  </div>
                  <div class="text-center">
                      <div class="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-[#F8F8F5] border border-gray-200">
@@ -110,7 +120,7 @@
                          </svg>
                      </div>
                      <p class="text-sm text-gray-600">{{ __('Items Sold') }}</p>
-                     <p class="text-lg font-semibold text-[#D62F1A]">{{ App\Models\OrderItem::sum('qty') }}</p>
+                     <p class="text-lg font-semibold text-[#D62F1A]">{{ number_format($itemsSold ?? 0) }}</p>
                  </div>
                  <div class="text-center">
                      <div class="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-[#F8F8F5] border border-gray-200">
@@ -148,6 +158,57 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.343-4 3s1.79 3 4 3 4 1.343 4 3"/></svg>
                     {{ __('View Order History') }}
                 </a>
+            </div>
+        </div>
+        @endif
+
+        {{-- Client quick link and recent orders --}}
+        @if(auth()->check() && auth()->user()->isClient())
+        <div class="grid gap-4 md:grid-cols-2">
+            <!-- Quick Link: Order History -->
+            <div class="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-zinc-900">
+                <h3 class="mb-3 text-sm font-semibold text-gray-800 dark:text-neutral-200">{{ __('Quick Link') }}</h3>
+                <a href="{{ route('client.orders.index') }}" class="inline-flex items-center gap-2 rounded-md bg-amber-600 px-3 py-2 text-xs font-medium text-white hover:bg-amber-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18"/></svg>
+                    {{ __('Order History') }}
+                </a>
+            </div>
+
+            <!-- Client Recent Orders Table -->
+            <div class="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-zinc-900">
+                <h3 class="mb-3 text-sm font-semibold text-gray-800 dark:text-neutral-200">{{ __('Recent Orders') }}</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-xs">
+                        <thead>
+                            <tr class="text-left text-gray-500 dark:text-neutral-400">
+                                <th class="px-2 py-1">#</th>
+                                <th class="px-2 py-1">{{ __('Total') }}</th>
+                                <th class="px-2 py-1">{{ __('Status') }}</th>
+                                <th class="px-2 py-1">{{ __('Delivery') }}</th>
+                                <th class="px-2 py-1">{{ __('Created') }}</th>
+                                <th class="px-2 py-1" style="width:90px">{{ __('Actions') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
+                            @forelse(($recentOrders ?? []) as $order)
+                                <tr class="text-gray-800 dark:text-neutral-200">
+                                    <td class="px-2 py-1 font-mono">{{ $order->order_number }}</td>
+                                    <td class="px-2 py-1">₱{{ number_format($order->total ?? 0, 2) }}</td>
+                                    <td class="px-2 py-1">{{ $order->status ?? '—' }}</td>
+                                    <td class="px-2 py-1">{{ $order->delivery_status ?? '—' }}</td>
+                                    <td class="px-2 py-1">{{ optional($order->created_at)->format('Y-m-d H:i') }}</td>
+                                    <td class="px-2 py-1 text-right">
+                                        <a href="{{ route('client.orders.show', $order) }}" class="text-indigo-600 hover:text-indigo-900">{{ __('Details') }}</a>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="px-2 py-2 text-center text-gray-500">{{ __('No orders yet') }}</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
         @endif
@@ -225,52 +286,7 @@
          </div>
          @endif
 
-        <!-- My Addresses Table - Visible to all users -->
-         <div class="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-zinc-900">
-             <h3 class="mb-3 text-sm font-semibold text-gray-800 dark:text-neutral-200">{{ __('My Addresses') }}</h3>
-             <div class="overflow-x-auto">
-                 <table class="min-w-full text-xs">
-                     <thead>
-                         <tr class="text-left text-gray-500 dark:text-neutral-400">
-                             @if(auth()->check() && auth()->user()->isAdmin())
-                                 <th class="px-2 py-1">{{ __('User') }}</th>
-                             @endif
-                             <th class="px-2 py-1">{{ __('Region') }}</th>
-                             <th class="px-2 py-1">{{ __('Province') }}</th>
-                             <th class="px-2 py-1">{{ __('City') }}</th>
-                             <th class="px-2 py-1">{{ __('Barangay') }}</th>
-                             <th class="px-2 py-1">{{ __('Exact Address') }}</th>
-                             <th class="px-2 py-1">{{ __('Default') }}</th>
-                         </tr>
-                     </thead>
-                     <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
-                         @forelse(($myAddresses ?? []) as $addr)
-                             <tr class="text-gray-800 dark:text-neutral-200">
-                                 @if(auth()->check() && auth()->user()->isAdmin())
-                                     <td class="px-2 py-1">{{ $addr->user->name ?? 'N/A' }}</td>
-                                 @endif
-                                 <td class="px-2 py-1">{{ $addr->region_code ?? '—' }}</td>
-                                 <td class="px-2 py-1">{{ $addr->province_code ?? '—' }}</td>
-                                 <td class="px-2 py-1">{{ $addr->city_code ?? '—' }}</td>
-                                 <td class="px-2 py-1">{{ $addr->barangay_code ?? '—' }}</td>
-                                 <td class="px-2 py-1">{{ $addr->exact_address ?? '—' }}</td>
-                                 <td class="px-2 py-1">
-                                     @if($addr->is_default)
-                                         <span class="badge badge-success">{{ __('Yes') }}</span>
-                                     @else
-                                         <span class="badge badge-secondary">{{ __('No') }}</span>
-                                     @endif
-                                 </td>
-                             </tr>
-                         @empty
-                             <tr>
-                                 <td colspan="{{ auth()->check() && auth()->user()->isAdmin() ? 7 : 6 }}" class="px-2 py-2 text-center text-gray-500">{{ __('You have no saved addresses') }}</td>
-                             </tr>
-                         @endforelse
-                     </tbody>
-                 </table>
-             </div>
-         </div>
+        
 
         @if(auth()->check() && auth()->user()->isAdmin())
         <div class="grid gap-4 md:grid-cols-2">

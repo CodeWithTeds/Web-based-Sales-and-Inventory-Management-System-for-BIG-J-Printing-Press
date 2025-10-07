@@ -21,11 +21,18 @@ class ProductRequest extends FormRequest
      */
     public function rules(): array
     {
+        // Determine the current product ID (for updates) to relax unique rule
+        $productId = $this->route('product') ?? $this->route('id');
+
+        $nameUniqueRule = $productId
+            ? 'unique:products,name,' . $productId
+            : 'unique:products,name';
+
         $rules = [
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|' . $nameUniqueRule,
             'description' => 'nullable|string',
             'category' => 'required|string|max:100',
-            'price' => 'required|numeric|min:0',
+            'price' => 'required|numeric|min:1',
             'active' => 'boolean',
             'notes' => 'nullable|string',
             'material_ids' => 'nullable|array',

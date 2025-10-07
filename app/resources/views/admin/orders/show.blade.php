@@ -17,7 +17,8 @@
                         <div class="text-sm text-gray-500">Status</div>
                         <div class="flex items-center justify-end space-x-2">
                             <span class="inline-flex items-center px-2 py-0.5 rounded bg-indigo-100 text-indigo-800">{{ $order->status }}</span>
-                            <form method="POST" action="{{ route('admin.orders.delivery.update', $order) }}">
+                            @php $ordersRoutePrefix = request()->routeIs('staff.orders.*') ? 'staff.orders' : 'admin.orders'; @endphp
+                            <form method="POST" action="{{ route($ordersRoutePrefix . '.delivery.update', $order) }}">
                                 @csrf
                                 @method('PUT')
                                 <div class="inline-flex items-center space-x-2">
@@ -102,8 +103,10 @@
                 </div>
 
                 <div class="flex items-center justify-between">
-                    <a href="{{ route('admin.orders.index') }}" class="text-sm text-gray-600 hover:text-gray-800">Back to Orders</a>
-                    <a href="{{ route('admin.pos.receipt', $order) }}" class="inline-flex items-center px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">View Receipt</a>
+                    <a href="{{ route($ordersRoutePrefix . '.index') }}" class="text-sm text-gray-600 hover:text-gray-800">Back to Orders</a>
+                    @if(auth()->check() && auth()->user()->isAdmin())
+                        <a href="{{ route('admin.pos.receipt', $order) }}" class="inline-flex items-center px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">View Receipt</a>
+                    @endif
                 </div>
             </div>
         </div>
