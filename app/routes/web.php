@@ -148,7 +148,7 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/profile', 'settings.profile')->name('profile.edit');
     Volt::route('settings/password', 'settings.password')->name('password.edit');
     Volt::route('settings/appearance', 'settings.appearance')->name('appearance.edit');
-    Route::view('settings/address', 'settings.address')->name('address.edit');
+    Route::view('settings/address', 'settings.address')->middleware(['auth','role:client'])->name('address.edit');
 });
 
 // Admin routes
