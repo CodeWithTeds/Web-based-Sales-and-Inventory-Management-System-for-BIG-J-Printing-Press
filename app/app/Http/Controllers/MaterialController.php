@@ -270,10 +270,40 @@ class MaterialController extends BaseController
     {
         $validated = $request->validated();
 
-        $this->service->stockOut($id, $validated['quantity']);
+        try {
+            $material = $this->service->stockOut($id, $validated['quantity']);
 
-        $message = 'Stock deducted successfully from ' . $this->resourceName;
-        return $this->respondWith(null, $message, $this->routePrefix . '.index');
+            $message = $material->quantity == 0
+                ? 'Stock deducted successfully. Material is now out of stock.'
+                : 'Stock deducted successfully from ' . $this->resourceName;
+
+            return $this->respondWith(null, $message, $this->routePrefix . '.index');
+        } catch (\RuntimeException $e) {
+            // Map repository error for insufficient stock into a friendly message
+            $raw = $e->getMessage();
+            if (is_string($raw) && str_starts_with($raw, 'INSUFFICIENT_STOCK:')) {
+                $json = substr($raw, strlen('INSUFFICIENT_STOCK:'));
+                $details = json_decode($json, true) ?: [];
+                $msg = 'Insufficient stock to deduct the requested quantity.';
+                if (!empty($details) && is_array($details)) {
+                    $first = $details[0] ?? null;
+                    if (is_array($first)) {
+                        $msg = sprintf(
+                            'Insufficient stock: %s requires %.2f %s, only %.2f %s available.',
+                            $first['name'] ?? 'Material',
+                            (float) ($first['required'] ?? 0),
+                            $first['unit'] ?? '',
+                            (float) ($first['available'] ?? 0),
+                            $first['unit'] ?? ''
+                        );
+                    }
+                }
+                return $this->respondWithError($msg, $this->routePrefix . '.stock-out.form', ['material' => $id]);
+            }
+            return $this->respondWithError('Stock deduction failed: ' . $e->getMessage(), $this->routePrefix . '.stock-out.form', ['material' => $id]);
+        } catch (\Throwable $e) {
+            return $this->respondWithError('Stock deduction failed. Please try again.', $this->routePrefix . '.stock-out.form', ['material' => $id]);
+        }
     }
 
     /**

@@ -76,8 +76,9 @@ class MaterialService
         return $this->materials->find($id);
     }
 
-    public function stockOut(int $id, float $quantity): void
+    public function stockOut(int $id, float $quantity)
     {
-        $this->materials->stockOut($id, $quantity);
+        // Return the updated material so callers can compose contextual messages
+        return $this->materials->stockOut($id, $quantity);
     }
 }
