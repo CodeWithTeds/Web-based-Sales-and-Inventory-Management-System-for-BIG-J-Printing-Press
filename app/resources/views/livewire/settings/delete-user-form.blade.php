@@ -22,6 +22,7 @@ new class extends Component {
     }
 }; ?>
 
+@if(auth()->check() && (auth()->user()->isDriver() || auth()->user()->isStaff()))
 <section class="mt-10 space-y-6">
     <div class="relative mb-5">
         <flux:heading>{{ __('Delete account') }}</flux:heading>
@@ -58,3 +59,4 @@ new class extends Component {
         </form>
     </flux:modal>
 </section>
+@endif
