@@ -351,36 +351,7 @@
 
         @if(auth()->check() && auth()->user()->isAdmin())
  
-        <div class="grid gap-4 md:grid-cols-2 mb-4">
-            <!-- Sales Chart (Last 30 Days) -->
-            <div class="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-zinc-900">
-                <h3 class="mb-3 text-sm font-semibold text-gray-800 dark:text-neutral-200">{{ __('Sales (Last 30 Days)') }}</h3>
-                <div class="relative w-full">
-                    <canvas id="salesChart"
-                            data-labels='@json($salesChartLabels ?? [])'
-                            data-data='@json($salesChartData ?? [])'
-                            height="140"></canvas>
-                </div>
-            </div>
 
-            <!-- Sales Report Export -->
-            <div class="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-zinc-900">
-                <h3 class="mb-3 text-sm font-semibold text-gray-800 dark:text-neutral-200">{{ __('Export Sales Report') }}</h3>
-                <form method="GET" action="{{ route('admin.reports.sales.export') }}" target="_blank" class="grid grid-cols-1 gap-3 md:grid-cols-3">
-                    <div>
-                        <label class="block text-xs text-gray-600 mb-1" for="from">{{ __('From') }}</label>
-                        <input id="from" name="from" type="date" value="{{ \Illuminate\Support\Carbon::now()->subDays(29)->toDateString() }}" class="w-full rounded-md border border-neutral-300 px-2 py-1 text-xs dark:border-neutral-700 dark:bg-zinc-800 dark:text-neutral-200" />
-                    </div>
-                    <div>
-                        <label class="block text-xs text-gray-600 mb-1" for="to">{{ __('To') }}</label>
-                        <input id="to" name="to" type="date" value="{{ \Illuminate\Support\Carbon::now()->toDateString() }}" class="w-full rounded-md border border-neutral-300 px-2 py-1 text-xs dark:border-neutral-700 dark:bg-zinc-800 dark:text-neutral-200" />
-                    </div>
-                    <div class="flex items-end">
-                        <button type="submit" class="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-700 w-full">{{ __('Download CSV') }}</button>
-                    </div>
-                </form>
-            </div>
-        </div>
 
         <div class="grid gap-4 md:grid-cols-2">
             <!-- Payments Table -->
