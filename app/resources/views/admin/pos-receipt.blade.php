@@ -75,16 +75,22 @@
             <div>₱{{ number_format($order->total, 2) }}</div>
         </div>
         @php
-            $showBalances = ((float) ($order->remaining_balance ?? 0)) > 0 || ((float) ($order->downpayment ?? 0)) > 0;
+            // Compute remaining using Payments excluding POS downpayment records
+            $paidSum = ($order->payments ?? collect())
+                ->filter(function($p){ return empty($p->reference) || !str_starts_with($p->reference, 'POSDP-'); })
+                ->sum('amount');
+            $down = (float) ($order->downpayment ?? 0);
+            $remaining = max(($order->total ?? 0) - $down - (float) $paidSum, 0);
+            $showBalances = ($remaining > 0) || ($down > 0);
         @endphp
         @if($rp !== 'client.ordering' && $showBalances)
         <div class="total">
             <div>Downpayment</div>
-            <div>₱{{ number_format(($order->downpayment ?? 0), 2) }}</div>
+            <div>₱{{ number_format($down, 2) }}</div>
         </div>
-        <div class="total">
+        <div class="total" id="remaining-balance-row" data-remaining="{{ $remaining }}">
             <div>Remaining Balance</div>
-            <div>₱{{ number_format(($order->remaining_balance ?? 0), 2) }}</div>
+            <div>₱{{ number_format($remaining, 2) }}</div>
         </div>
         @endif
         @php
@@ -106,5 +112,17 @@
         <div class="sep">******************************</div>
         <div class="thanks">THANK YOU!</div>
     </div>
+    <script>
+        (function(){
+            try {
+                var row = document.getElementById('remaining-balance-row');
+                var remaining = parseFloat(row?.dataset?.remaining || '0');
+                // If there is outstanding balance, auto-reload every 10s to reflect new payments
+                if (remaining > 0) {
+                    setTimeout(function(){ location.reload(); }, 10000);
+                }
+            } catch(e){}
+        })();
+    </script>
 </body>
 </html>

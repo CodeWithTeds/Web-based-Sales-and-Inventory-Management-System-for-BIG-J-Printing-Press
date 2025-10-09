@@ -74,6 +74,55 @@ Route::get('dashboard', function () {
         })
         ->latest()->limit(10)->get();
 
+    // Build 30-day sales chart data (exclude POS downpayment records)
+    $start = now()->subDays(29)->startOfDay();
+    $labels = [];
+    $series = [];
+    for ($i = 0; $i < 30; $i++) {
+        $labels[] = $start->copy()->addDays($i)->format('Y-m-d');
+        $series[] = 0.0;
+    }
+    $paymentsForChart = Payment::with('order')
+        ->when($user && !($user->isAdmin() || $user->isStaff()), function ($query) {
+            $query->whereHas('order', function ($oq) {
+                $oq->where('user_id', Auth::id());
+            });
+        })
+        ->where(function($q){ $q->whereNull('reference')->orWhere('reference','not like','POSDP-%'); })
+        ->where(function($q) use ($start){
+            $q->where('created_at', '>=', $start)->orWhere('paid_at', '>=', $start);
+        })
+        ->get();
+    foreach ($paymentsForChart as $p) {
+        $d = optional($p->paid_at ?? $p->created_at)->format('Y-m-d');
+        $idx = array_search($d, $labels, true);
+        if ($idx !== false) { $series[$idx] += (float) ($p->amount ?? 0); }
+    }
+
+    // Top products/materials in last 30 days
+    $items = \App\Models\OrderItem::with(['product.materials'])
+        ->where('created_at', '>=', $start)
+        ->get();
+    $agg = [];
+    foreach ($items as $it) {
+        $key = $it->product_id ?: ('NAME:' . ($it->name ?? 'Unknown'));
+        if (!isset($agg[$key])) {
+            $productName = $it->product->name ?? $it->name ?? 'Unknown';
+            $materials = $it->product ? $it->product->materials->pluck('name')->implode(', ') : '—';
+            $agg[$key] = [
+                'product_name' => $productName,
+                'materials' => $materials,
+                'total_qty' => 0,
+                'total_amount' => 0.0,
+            ];
+        }
+        $agg[$key]['total_qty'] += (int) ($it->qty ?? 0);
+        $agg[$key]['total_amount'] += (float) ($it->line_total ?? 0);
+    }
+    // Sort by total_amount desc and take top 10
+    uasort($agg, fn($a, $b) => $b['total_amount'] <=> $a['total_amount']);
+    $topProducts = array_slice(array_values($agg), 0, 10);
+
     $data = [
         'message' => __('Dashboard'),
         'deliveryByStatus' => $deliveryByStatus,
@@ -86,6 +135,9 @@ Route::get('dashboard', function () {
         'recentOrderItems' => $recentOrderItems,
         'myAddresses' => $myAddresses,
         'recentPayments' => $recentPayments,
+        'salesChartLabels' => $labels,
+        'salesChartData' => $series,
+        'topProducts' => $topProducts,
     ];
     return view('dashboard', $data);
 })->middleware(['auth', 'verified'])->name('dashboard');
@@ -114,6 +166,48 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
             : collect();
         $recentPayments = Payment::with(['order'])->latest()->limit(10)->get();
 
+        // Build 30-day sales chart data (exclude POS downpayment records)
+        $start = now()->subDays(29)->startOfDay();
+        $labels = [];
+        $series = [];
+        for ($i = 0; $i < 30; $i++) {
+            $labels[] = $start->copy()->addDays($i)->format('Y-m-d');
+            $series[] = 0.0;
+        }
+        $paymentsForChart = Payment::where(function($q){ $q->whereNull('reference')->orWhere('reference','not like','POSDP-%'); })
+            ->where(function($q) use ($start){
+                $q->where('created_at', '>=', $start)->orWhere('paid_at', '>=', $start);
+            })
+            ->get();
+        foreach ($paymentsForChart as $p) {
+            $d = optional($p->paid_at ?? $p->created_at)->format('Y-m-d');
+            $idx = array_search($d, $labels, true);
+            if ($idx !== false) { $series[$idx] += (float) ($p->amount ?? 0); }
+        }
+
+        // Top products/materials in last 30 days (admin)
+        $items = \App\Models\OrderItem::with(['product.materials'])
+            ->where('created_at', '>=', $start)
+            ->get();
+        $agg = [];
+        foreach ($items as $it) {
+            $key = $it->product_id ?: ('NAME:' . ($it->name ?? 'Unknown'));
+            if (!isset($agg[$key])) {
+                $productName = $it->product->name ?? $it->name ?? 'Unknown';
+                $materials = $it->product ? $it->product->materials->pluck('name')->implode(', ') : '—';
+                $agg[$key] = [
+                    'product_name' => $productName,
+                    'materials' => $materials,
+                    'total_qty' => 0,
+                    'total_amount' => 0.0,
+                ];
+            }
+            $agg[$key]['total_qty'] += (int) ($it->qty ?? 0);
+            $agg[$key]['total_amount'] += (float) ($it->line_total ?? 0);
+        }
+        uasort($agg, fn($a, $b) => $b['total_amount'] <=> $a['total_amount']);
+        $topProducts = array_slice(array_values($agg), 0, 10);
+
         $data = [
             'message' => 'Admin Dashboard',
             'deliveryByStatus' => $deliveryByStatus,
@@ -124,9 +218,15 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
             'recentOrderItems' => $recentOrderItems,
             'myAddresses' => $myAddresses,
             'recentPayments' => $recentPayments,
+            'salesChartLabels' => $labels,
+            'salesChartData' => $series,
+            'topProducts' => $topProducts,
         ];
         return view('dashboard', $data);
     })->name('admin.dashboard');
+
+    // Sales report export (CSV)
+    Route::get('/reports/sales/export', [\App\Http\Controllers\Admin\ReportsController::class, 'export'])->name('admin.reports.sales.export');
 
     // Orders
     Route::get('/orders', [OrdersController::class, 'index'])->name('admin.orders.index');

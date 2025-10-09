@@ -47,6 +47,67 @@
             </div>
         </div>
 
+        <!-- Sales & Export placed under Welcome for Admin -->
+        @if(auth()->check() && auth()->user()->isAdmin())
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <!-- Sales Chart (Last 30 Days) -->
+            <div class="rounded-2xl bg-white p-6 shadow-lg border border-gray-100 dark:border-neutral-700 dark:bg-zinc-900">
+                <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-neutral-200">{{ __('Sales (Last 30 Days)') }}</h3>
+                <div class="relative w-full">
+                    <canvas id="salesChart"
+                            data-labels='@json($salesChartLabels ?? [])'
+                            data-data='@json($salesChartData ?? [])'
+                            height="160"></canvas>
+                </div>
+            </div>
+
+            <!-- Sales Report Export -->
+            <div class="rounded-2xl bg-white p-6 shadow-lg border border-gray-100 dark:border-neutral-700 dark:bg-zinc-900">
+                <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-neutral-200">{{ __('Export Sales Report') }}</h3>
+                <form method="GET" action="{{ route('admin.reports.sales.export') }}" target="_blank" class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1" for="from">{{ __('From') }}</label>
+                        <input id="from" name="from" type="date" value="{{ \Illuminate\Support\Carbon::now()->subDays(29)->toDateString() }}" class="w-full rounded-md border border-neutral-300 px-2 py-2 text-xs dark:border-neutral-700 dark:bg-zinc-800 dark:text-neutral-200" />
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1" for="to">{{ __('To') }}</label>
+                        <input id="to" name="to" type="date" value="{{ \Illuminate\Support\Carbon::now()->toDateString() }}" class="w-full rounded-md border border-neutral-300 px-2 py-2 text-xs dark:border-neutral-700 dark:bg-zinc-800 dark:text-neutral-200" />
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit" class="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-700 w-full">{{ __('Download CSV') }}</button>
+                    </div>
+                </form>
+                @if(!empty($topProducts))
+                <div class="mt-4">
+                    <h4 class="text-sm font-semibold text-gray-800 dark:text-neutral-200">{{ __('Top Products & Materials (30 Days)') }}</h4>
+                    <div class="overflow-x-auto mt-2">
+                        <table class="min-w-full text-xs">
+                            <thead>
+                                <tr class="text-left text-gray-500 dark:text-neutral-400">
+                                    <th class="px-2 py-1">{{ __('Product') }}</th>
+                                    <th class="px-2 py-1">{{ __('Materials') }}</th>
+                                    <th class="px-2 py-1">{{ __('Qty') }}</th>
+                                    <th class="px-2 py-1">{{ __('Total Sales') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
+                                @foreach($topProducts as $p)
+                                <tr class="text-gray-800 dark:text-neutral-200">
+                                    <td class="px-2 py-1">{{ $p['product_name'] }}</td>
+                                    <td class="px-2 py-1">{{ $p['materials'] }}</td>
+                                    <td class="px-2 py-1">{{ (int)($p['total_qty'] ?? 0) }}</td>
+                                    <td class="px-2 py-1">₱{{ number_format($p['total_amount'] ?? 0, 2) }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                @endif
+            </div>
+        </div>
+        @endif
+
         <!-- Out for Deliveries card -->
         <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
             <div class="rounded-2xl bg-white p-6 shadow-lg border border-gray-100">
@@ -289,12 +350,43 @@
         
 
         @if(auth()->check() && auth()->user()->isAdmin())
-        <div class="grid gap-4 md:grid-cols-2">
-
-            <!-- Payments Table -->
+ 
+        <div class="grid gap-4 md:grid-cols-2 mb-4">
+            <!-- Sales Chart (Last 30 Days) -->
             <div class="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-zinc-900">
-                <h3 class="mb-3 text-sm font-semibold text-gray-800 dark:text-neutral-200">{{ __('Recent Payments') }}</h3>
-                <div class="overflow-x-auto">
+                <h3 class="mb-3 text-sm font-semibold text-gray-800 dark:text-neutral-200">{{ __('Sales (Last 30 Days)') }}</h3>
+                <div class="relative w-full">
+                    <canvas id="salesChart"
+                            data-labels='@json($salesChartLabels ?? [])'
+                            data-data='@json($salesChartData ?? [])'
+                            height="140"></canvas>
+                </div>
+            </div>
+
+            <!-- Sales Report Export -->
+            <div class="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-zinc-900">
+                <h3 class="mb-3 text-sm font-semibold text-gray-800 dark:text-neutral-200">{{ __('Export Sales Report') }}</h3>
+                <form method="GET" action="{{ route('admin.reports.sales.export') }}" target="_blank" class="grid grid-cols-1 gap-3 md:grid-cols-3">
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1" for="from">{{ __('From') }}</label>
+                        <input id="from" name="from" type="date" value="{{ \Illuminate\Support\Carbon::now()->subDays(29)->toDateString() }}" class="w-full rounded-md border border-neutral-300 px-2 py-1 text-xs dark:border-neutral-700 dark:bg-zinc-800 dark:text-neutral-200" />
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1" for="to">{{ __('To') }}</label>
+                        <input id="to" name="to" type="date" value="{{ \Illuminate\Support\Carbon::now()->toDateString() }}" class="w-full rounded-md border border-neutral-300 px-2 py-1 text-xs dark:border-neutral-700 dark:bg-zinc-800 dark:text-neutral-200" />
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit" class="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-700 w-full">{{ __('Download CSV') }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+            <!-- Payments Table -->
+                <div class="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-zinc-900">
+                    <h3 class="mb-3 text-sm font-semibold text-gray-800 dark:text-neutral-200">{{ __('Recent Payments') }}</h3>
+                    <div class="overflow-x-auto">
                     <table class="min-w-full text-xs">
                         <thead>
                             <tr class="text-left text-gray-500 dark:text-neutral-400">
@@ -357,6 +449,42 @@
                     options: {
                         responsive: true,
                         plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+            })();
+
+            (function() {
+                var salesCanvas = document.getElementById('salesChart');
+                if (!salesCanvas) return;
+                var labels = [];
+                var data = [];
+                try {
+                    labels = salesCanvas.dataset.labels ? JSON.parse(salesCanvas.dataset.labels) : [];
+                    data = salesCanvas.dataset.data ? JSON.parse(salesCanvas.dataset.data) : [];
+                } catch (e) {
+                    labels = [];
+                    data = [];
+                }
+                var ctx = salesCanvas.getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels.length ? labels : ['No Data'],
+                        datasets: [{
+                            label: 'Sales',
+                            data: data.length ? data : [0],
+                            borderColor: '#D62F1A',
+                            backgroundColor: 'rgba(214,47,26,0.1)',
+                            tension: 0.3,
+                            fill: true,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { position: 'bottom' } },
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
                     }
                 });
             })();
