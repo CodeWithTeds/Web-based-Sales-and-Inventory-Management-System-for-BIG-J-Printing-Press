@@ -63,6 +63,19 @@ class BalancesController extends Controller
             'notes' => ['nullable', 'string', 'max:255'],
         ]);
 
+        // Prevent overpayment: compute remaining balance excluding POS downpayment Payment records
+        $paidSum = (float) $order->payments()
+            ->where(function ($q) { $q->whereNull('reference')->orWhere('reference', 'not like', 'POSDP-%'); })
+            ->sum('amount');
+        $down = (float) ($order->downpayment ?? 0);
+        $total = (float) ($order->total ?? 0);
+        $remaining = max($total - $down - $paidSum, 0);
+        if ((float) ($data['amount'] ?? 0) > $remaining) {
+            return back()
+                ->withErrors(['amount' => 'Payment amount exceeds remaining balance (₱' . number_format($remaining, 2) . ').'])
+                ->withInput();
+        }
+
         $data['currency'] = $data['currency'] ?? 'PHP';
 
         $payment = new Payment($data);
@@ -90,6 +103,21 @@ class BalancesController extends Controller
             'due_date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string', 'max:255'],
         ]);
+
+        // Prevent overpayment during update: recompute remaining excluding this payment and POS downpayment Payment records
+        $order = $payment->order;
+        $paidSum = (float) $order->payments()
+            ->where(function ($q) { $q->whereNull('reference')->orWhere('reference', 'not like', 'POSDP-%'); })
+            ->where('id', '!=', $payment->id)
+            ->sum('amount');
+        $down = (float) ($order->downpayment ?? 0);
+        $total = (float) ($order->total ?? 0);
+        $remaining = max($total - $down - $paidSum, 0);
+        if ((float) ($data['amount'] ?? 0) > $remaining) {
+            return back()
+                ->withErrors(['amount' => 'Payment amount exceeds remaining balance (₱' . number_format($remaining, 2) . ').'])
+                ->withInput();
+        }
 
         $payment->update($data);
 
