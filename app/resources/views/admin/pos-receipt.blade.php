@@ -74,16 +74,19 @@
             <div>Total</div>
             <div>₱{{ number_format($order->total, 2) }}</div>
         </div>
-        @if($rp !== 'client.ordering')
+        @php
+            $showBalances = ((float) ($order->remaining_balance ?? 0)) > 0 || ((float) ($order->downpayment ?? 0)) > 0;
+        @endphp
+        @if($rp !== 'client.ordering' && $showBalances)
         <div class="total">
             <div>Downpayment</div>
             <div>₱{{ number_format(($order->downpayment ?? 0), 2) }}</div>
         </div>
-        @endif
         <div class="total">
             <div>Remaining Balance</div>
             <div>₱{{ number_format(($order->remaining_balance ?? 0), 2) }}</div>
         </div>
+        @endif
         @php
             $latestPayment = ($order->payments ?? collect())
                 ->sortByDesc(function($p){ return $p->paid_at ?? $p->created_at; })
