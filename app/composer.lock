@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "542d03564d7299ac892b97e22a3e5799",
+    "content-hash": "7229b463ecbfd6bb4160411000bd24fa",
     "packages": [
         {
             "name": "brick/math",
@@ -3846,6 +3846,51 @@
                 "source": "https://github.com/MyIntervals/PHP-CSS-Parser/tree/v8.9.0"
             },
             "time": "2025-07-11T13:20:48+00:00"
+        },
+        {
+            "name": "schoolees/laravel-psgc",
+            "version": "v1.0.7",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Schoolees/schoolees-psgc.package.git",
+                "reference": "908abda6684dd50c112170872ed23cbdb8eab537"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Schoolees/schoolees-psgc.package/zipball/908abda6684dd50c112170872ed23cbdb8eab537",
+                "reference": "908abda6684dd50c112170872ed23cbdb8eab537",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/database": "^10.0|^11.0|^12.0",
+                "illuminate/http": "^10.0|^11.0|^12.0",
+                "illuminate/routing": "^10.0|^11.0|^12.0",
+                "illuminate/support": "^10.0|^11.0|^12.0",
+                "php": "^8.1"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Schoolees\\Psgc\\Providers\\PsgcServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Schoolees\\Psgc\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "PSGC for Laravel: migrations, seeders, JSON data, models, services, resources, controllers, and read-only routes.",
+            "support": {
+                "issues": "https://github.com/Schoolees/schoolees-psgc.package/issues",
+                "source": "https://github.com/Schoolees/schoolees-psgc.package/tree/v1.0.7"
+            },
+            "time": "2025-08-11T19:39:20+00:00"
         },
         {
             "name": "symfony/clock",
