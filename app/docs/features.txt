@@ -1,0 +1,98 @@
+IMS Application Features
+========================
+
+Overview
+--------
+This file lists the major user-facing and admin/staff features discovered from the route definitions and modules in the application.
+
+Authentication
+--------------
+- Login, Register
+- Forgot Password, Reset Password
+- Email Verification (notice and verification link)
+- Confirm Password
+- Logout
+
+Settings
+--------
+- Profile settings
+- Password settings
+- Appearance settings
+- Address management (client-only)
+
+Dashboards (Role-Based)
+-----------------------
+- Client Dashboard with personal metrics and recent activity
+- Admin Dashboard with global metrics and recent activity
+- Staff Dashboard with operational metrics
+- Driver Dashboard with delivery-related metrics
+
+Products Management
+-------------------
+- CRUD (create, read, update) for products (admin, staff)
+- Delete product (admin-only)
+- Filter products by category
+- Manage product materials (add/remove materials per product)
+
+Materials Management
+--------------------
+- CRUD (create, read, update) for materials (admin, staff)
+- Delete material (admin-only)
+- Stock In and Stock Out operations
+- Material request form and submission
+- Low-stock report
+- Filter materials by category
+
+Suppliers Management
+--------------------
+- Admin-only CRUD for suppliers under `/admin/suppliers`
+
+Drivers Management
+------------------
+- Admin-only management of drivers (index, create, store, show, edit, update)
+
+Point of Sale (Admin)
+---------------------
+- POS page for managing carts and checkout
+- Cart operations: add, increment, decrement, remove, clear
+- Checkout flow and receipt generation (view and download)
+- Send balance reminder for orders
+
+Online Ordering (Client)
+------------------------
+- Ordering page (reuses POS controller)
+- Cart operations: add, increment, decrement, remove, clear
+- Checkout flow
+- PayMongo callbacks for success and cancel
+- Receipt view and download
+
+Orders Management
+-----------------
+- Admin/Staff: list orders, view order details, update delivery status
+- Driver: list assigned orders, view details, update delivery status
+- Driver Map page for visualizing orders
+- Client: list own orders and view order details
+
+Balances & Payments
+-------------------
+- Admin balances index showing outstanding per order
+- Create, update, delete payments linked to orders
+- Send payment reminder for balances
+
+Outstanding Balances (Admin)
+----------------------------
+- Outstanding balances index
+- Create, update, delete payments linked to orders
+- Send payment reminder for outstanding balances
+
+Activity Logs
+-------------
+- Admin: view all activity logs
+- Staff: view own activity logs
+
+Miscellaneous
+-------------
+- Landing page
+- Test route for product repository
+- Alternative map route (auth-only) for debugging
+- Console command `inspire` to display an inspiring quote

@@ -9,17 +9,22 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            // Drop the existing incorrect foreign key if it exists
-            // Conventionally named: orders_user_address_id_foreign
-            $table->dropForeign(['user_address_id']);
+            // Drop the existing foreign key if it exists
+            try {
+                $table->dropForeign(['user_address_id']);
+            } catch (\Throwable $e) {
+                // ignore if not existing
+            }
         });
 
         Schema::table('orders', function (Blueprint $table) {
             // Re-create the foreign key correctly to users_addresses table
-            $table->foreign('user_address_id')
-                ->references('id')
-                ->on('users_addresses')
-                ->nullOnDelete();
+            if (Schema::hasColumn('orders', 'user_address_id') && Schema::hasTable('users_addresses')) {
+                $table->foreign('user_address_id')
+                    ->references('id')
+                    ->on('users_addresses')
+                    ->nullOnDelete();
+            }
         });
     }
 
@@ -27,15 +32,19 @@ return new class extends Migration
     {
         Schema::table('orders', function (Blueprint $table) {
             // Drop the corrected foreign key
-            $table->dropForeign(['user_address_id']);
+            try {
+                $table->dropForeign(['user_address_id']);
+            } catch (\Throwable $e) {}
         });
 
         Schema::table('orders', function (Blueprint $table) {
             // Restore the previous (incorrect) foreign key referencing user_addresses
-            $table->foreign('user_address_id')
-                ->references('id')
-                ->on('user_addresses')
-                ->nullOnDelete();
+            if (Schema::hasColumn('orders', 'user_address_id') && Schema::hasTable('user_addresses')) {
+                $table->foreign('user_address_id')
+                    ->references('id')
+                    ->on('user_addresses')
+                    ->nullOnDelete();
+            }
         });
     }
 };
