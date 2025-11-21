@@ -11,16 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('product_size', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('product_id');
-            $table->unsignedBigInteger('size_id');
-            $table->timestamps();
+        if (!Schema::hasTable('product_size')) {
+            Schema::create('product_size', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+                $table->foreignId('size_id')->constrained()->cascadeOnDelete();
+                $table->timestamps();
 
-            $table->unique(['product_id', 'size_id']);
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
-            $table->foreign('size_id')->references('id')->on('sizes')->onDelete('cascade');
-        });
+                $table->unique(['product_id', 'size_id']);
+            });
+        }
     }
 
     /**
