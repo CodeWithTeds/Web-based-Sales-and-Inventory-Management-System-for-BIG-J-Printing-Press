@@ -12,9 +12,9 @@
                     <form method="POST" action="{{ route('products.store') }}" enctype="multipart/form-data">
                         @csrf
 
-                        <!-- Name -->
+                        <!-- Product Name -->
                         <div class="mt-4">
-                            <x-input-label for="name" :value="__('Name')" />
+                            <x-input-label for="name" :value="__('Product Name')" />
                             <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus />
                             <x-input-error :messages="$errors->get('name')" class="mt-2" />
                         </div>
@@ -29,7 +29,12 @@
                         <!-- Category -->
                         <div class="mt-4">
                             <x-input-label for="category" :value="__('Category')" />
-                            <x-text-input id="category" class="block mt-1 w-full" type="text" name="category" :value="old('category')" required />
+                            <select id="category" name="category" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                                <option value="" disabled {{ old('category') ? '' : 'selected' }}>Select category</option>
+                                @foreach(($categories ?? []) as $category)
+                                    <option value="{{ $category }}" {{ old('category') === $category ? 'selected' : '' }}>{{ $category }}</option>
+                                @endforeach
+                            </select>
                             <x-input-error :messages="$errors->get('category')" class="mt-2" />
                         </div>
 
@@ -41,14 +46,30 @@
                                 <x-input-error :messages="$errors->get('price')" class="mt-2" />
                             </div>
 
-                            <!-- Active Status -->
+                            <!-- Unit -->
                             <div class="w-1/2">
-                                <x-input-label for="active" :value="__('Status')" />
-                                <select id="active" name="active" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                    <option value="1" {{ old('active', '1') == '1' ? 'selected' : '' }}>Active</option>
-                                    <option value="0" {{ old('active') == '0' ? 'selected' : '' }}>Inactive</option>
+                                <x-input-label for="unit" :value="__('Unit (how product is sold)')" />
+                                <select id="unit" name="unit" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                                    @php
+                                        $unitOptions = ['booklet', 'box', 'piece', 'pack', 'ream', 'set', 'sheet'];
+                                    @endphp
+                                    <option value="" disabled {{ old('unit') ? '' : 'selected' }}>Select unit</option>
+                                    @foreach($unitOptions as $u)
+                                        <option value="{{ $u }}" {{ old('unit', 'piece') === $u ? 'selected' : '' }}>{{ ucfirst($u) }}</option>
+                                    @endforeach
                                 </select>
-                                <x-input-error :messages="$errors->get('active')" class="mt-2" />
+                                <x-input-error :messages="$errors->get('unit')" class="mt-2" />
+                            </div>
+
+                            <!-- Status -->
+                            <div class="w-1/2">
+                                <x-input-label for="status" :value="__('Status')" />
+                                <select id="status" name="status" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                                    <option value="Available" {{ old('status', 'Available') === 'Available' ? 'selected' : '' }}>Available</option>
+                                    <option value="Unavailable" {{ old('status') === 'Unavailable' ? 'selected' : '' }}>Unavailable</option>
+                                    <option value="Phase Out" {{ old('status') === 'Phase Out' ? 'selected' : '' }}>Phase Out</option>
+                                </select>
+                                <x-input-error :messages="$errors->get('status')" class="mt-2" />
                             </div>
                         </div>
 

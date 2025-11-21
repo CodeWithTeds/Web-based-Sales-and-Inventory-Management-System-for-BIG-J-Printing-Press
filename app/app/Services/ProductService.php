@@ -6,6 +6,7 @@ use App\Repositories\ProductRepositoryInterface;
 use App\Repositories\MaterialRepositoryInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class ProductService
 {
@@ -33,31 +34,34 @@ class ProductService
     {
         return [
             'materials' => $this->materials->all(),
+            'categories' => $this->products->getUniqueCategories(),
         ];
     }
 
     public function create(array $data, ?UploadedFile $image = null, ?array $materialIds = null, ?array $quantities = null)
     {
-        if ($image && $image->isValid()) {
-            $path = $image->store('products', 'public');
-            $data['image_path'] = $path;
-        }
-
-        $item = $this->products->create($data);
-
-        // Attach materials if provided
-        if (is_array($materialIds) && !empty($materialIds)) {
-            $q = is_array($quantities) ? $quantities : array_fill_keys($materialIds, 1);
-            foreach ($materialIds as $materialId) {
-                $quantity = isset($q[$materialId]) ? (float) $q[$materialId] : 1.0;
-                if ($quantity <= 0) {
-                    $quantity = 1.0;
-                }
-                $this->products->addMaterial($item->id, (int) $materialId, $quantity);
+        return DB::transaction(function () use ($data, $image, $materialIds, $quantities) {
+            if ($image && $image->isValid()) {
+                $path = $image->store('products', 'public');
+                $data['image_path'] = $path;
             }
-        }
 
-        return $item->load('materials');
+            $item = $this->products->create($data);
+
+            // Attach materials if provided
+            if (is_array($materialIds) && !empty($materialIds)) {
+                $q = is_array($quantities) ? $quantities : array_fill_keys($materialIds, 1);
+                foreach ($materialIds as $materialId) {
+                    $quantity = isset($q[$materialId]) ? (float) $q[$materialId] : 1.0;
+                    if ($quantity <= 0) {
+                        $quantity = 1.0;
+                    }
+                    $this->products->addMaterial($item->id, (int) $materialId, $quantity);
+                }
+            }
+
+            return $item->load('materials');
+        });
     }
 
     public function getEditData(string|int $id): array
@@ -67,6 +71,7 @@ class ProductService
         return [
             'item' => $item,
             'materials' => $this->materials->all(),
+            'categories' => $this->products->getUniqueCategories(),
         ];
     }
 

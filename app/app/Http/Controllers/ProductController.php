@@ -73,7 +73,8 @@ class ProductController extends BaseController
 
         return view($this->viewPath . '.create', [
             'resourceName' => $this->resourceName,
-            'materials' => $data['materials']
+            'materials' => $data['materials'],
+            'categories' => $data['categories'] ?? []
         ]);
     }
 
@@ -87,18 +88,34 @@ class ProductController extends BaseController
     {
         $validated = $request instanceof ProductRequest ? $request->validated() : $this->validateRequest($request);
 
-        $item = $this->service->create(
-            $validated,
-            $request->hasFile('image') ? $request->file('image') : null,
-            $request->has('material_ids') && is_array($request->material_ids) ? $request->material_ids : null,
-            $request->has('quantities') && is_array($request->quantities) ? $request->quantities : null,
-        );
+        try {
+            $item = $this->service->create(
+                $validated,
+                $request->hasFile('image') ? $request->file('image') : null,
+                $request->has('material_ids') && is_array($request->material_ids) ? $request->material_ids : null,
+                $request->has('quantities') && is_array($request->quantities) ? $request->quantities : null,
+            );
 
-        return $this->respondWith(
-            $item,
-            $this->resourceName . ' created successfully',
-            $this->routePrefix . '.index'
-        );
+            return $this->respondWith(
+                $item,
+                $this->resourceName . ' created successfully',
+                $this->routePrefix . '.index'
+            );
+        } catch (\RuntimeException $e) {
+            if (strpos($e->getMessage(), 'INSUFFICIENT_STOCK') === 0) {
+                $errorMessage = str_replace('INSUFFICIENT_STOCK: ', '', $e->getMessage());
+
+                if ($request->wantsJson()) {
+                    return $this->errorResponse($errorMessage, 422);
+                }
+
+                return redirect()->back()
+                    ->withErrors(['material_ids' => $errorMessage])
+                    ->withInput();
+            }
+
+            throw $e;
+        }
     }
 
     /**
@@ -142,6 +159,7 @@ class ProductController extends BaseController
         return view($this->viewPath . '.edit', [
             'item' => $data['item'],
             'materials' => $data['materials'],
+            'categories' => $data['categories'] ?? [],
             'resourceName' => $this->resourceName
         ]);
     }
@@ -187,6 +205,8 @@ class ProductController extends BaseController
             'description' => 'nullable|string',
             'category' => 'required|string|max:100',
             'price' => 'required|numeric|min:1',
+            'unit' => 'required|string|in:booklet,box,piece,pack,ream,set,sheet',
+            'status' => 'required|string|in:Available,Unavailable,Phase Out',
             'active' => 'boolean',
             'notes' => 'nullable|string',
             'material_ids' => 'nullable|array',

@@ -61,27 +61,42 @@
                                 </div>
 
                                 <div>
+                                    <h4 class="text-sm font-medium text-gray-500">Unit</h4>
+                                    <p class="mt-1">{{ ucfirst($item->unit ?? 'piece') }}</p>
+                                </div>
+
+                                <div>
                                     <h4 class="text-sm font-medium text-gray-500">Price</h4>
                                     <p class="mt-1 font-semibold">₱{{ number_format($item->price, 2) }}</p>
                                 </div>
 
                                 <div>
                                     <h4 class="text-sm font-medium text-gray-500">Status</h4>
+                                    @php $status = $item->status ?? 'Available'; @endphp
                                     <p class="mt-1">
-                                        @if ($item->active)
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                            <svg class="mr-1 h-2 w-2 text-green-500" fill="currentColor" viewBox="0 0 8 8">
-                                                <circle cx="4" cy="4" r="3" />
-                                            </svg>
-                                            Active
-                                        </span>
+                                        @if ($status === 'Available')
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                <svg class="mr-1 h-2 w-2 text-green-500" fill="currentColor" viewBox="0 0 8 8">
+                                                    <circle cx="4" cy="4" r="3" />
+                                                </svg>
+                                                Available
+                                            </span>
+                                        @elseif ($status === 'Unavailable')
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                                <svg class="mr-1 h-2 w-2 text-red-500" fill="currentColor" viewBox="0 0 8 8">
+                                                    <circle cx="4" cy="4" r="3" />
+                                                </svg>
+                                                Unavailable
+                                            </span>
+                                        @elseif ($status === 'Phase Out')
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                <svg class="mr-1 h-2 w-2 text-yellow-500" fill="currentColor" viewBox="0 0 8 8">
+                                                    <circle cx="4" cy="4" r="3" />
+                                                </svg>
+                                                Phase Out
+                                            </span>
                                         @else
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                                            <svg class="mr-1 h-2 w-2 text-gray-500" fill="currentColor" viewBox="0 0 8 8">
-                                                <circle cx="4" cy="4" r="3" />
-                                            </svg>
-                                            Inactive
-                                        </span>
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">{{ $status }}</span>
                                         @endif
                                     </p>
                                 </div>

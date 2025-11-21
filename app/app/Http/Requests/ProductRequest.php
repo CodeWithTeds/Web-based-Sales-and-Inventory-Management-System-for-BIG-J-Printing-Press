@@ -33,6 +33,8 @@ class ProductRequest extends FormRequest
             'description' => 'nullable|string',
             'category' => 'required|string|max:100',
             'price' => 'required|numeric|min:1',
+            'unit' => 'required|string|in:booklet,box,piece,pack,ream,set,sheet',
+            'status' => 'required|string|in:Available,Unavailable,Phase Out',
             'active' => 'boolean',
             'notes' => 'nullable|string',
             'material_ids' => 'nullable|array',
