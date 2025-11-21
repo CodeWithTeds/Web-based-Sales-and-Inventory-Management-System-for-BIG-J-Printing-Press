@@ -125,6 +125,20 @@
                         </div>
                     </div>
 
+                    <!-- Sizes Section -->
+                    <div class="mt-8">
+                        <h3 class="text-lg font-semibold mb-2">Available Sizes</h3>
+                        @if($item->sizes && $item->sizes->count() > 0)
+                            <div class="flex flex-wrap gap-2">
+                                @foreach($item->sizes as $size)
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{{ $size->name }}</span>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-gray-500 text-sm">No sizes associated with this product.</p>
+                        @endif
+                    </div>
+
                     <!-- Materials Section -->
                     <div class="mt-8">
                         <h3 class="text-lg font-semibold mb-4">Required Materials</h3>

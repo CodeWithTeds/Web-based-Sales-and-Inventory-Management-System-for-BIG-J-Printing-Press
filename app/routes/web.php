@@ -16,6 +16,7 @@ require __DIR__ . '/materials.php';
 require __DIR__ . '/products.php';
 require __DIR__ . '/pos.php';
 require __DIR__ . '/categories.php';
+require __DIR__ . '/sizes.php';
 require __DIR__ . '/suppliers.php';
 require __DIR__ . '/drivers.php';
 require __DIR__ . '/balances.php';

@@ -19,6 +19,7 @@
                     <flux:navlist.item icon="shopping-bag" :href="route('products.index')" :current="request()->routeIs('products.*')" wire:navigate>{{ __('Products') }}</flux:navlist.item>
                     @if(auth()->check() && auth()->user()->isAdmin())
                     <flux:navlist.item icon="tag" :href="route('admin.categories.index')" :current="request()->routeIs('admin.categories.*')" wire:navigate>{{ __('Categories') }}</flux:navlist.item>
+                    <flux:navlist.item icon="rectangle-stack" :href="route('admin.sizes.index')" :current="request()->routeIs('admin.sizes.*')" wire:navigate>{{ __('Sizes') }}</flux:navlist.item>
                     @endif
 
                     @if(auth()->check() && auth()->user()->isAdmin())

@@ -72,4 +72,13 @@ interface ProductRepositoryInterface extends BaseRepositoryInterface
      * Average product price
      */
     public function avgPrice(): float;
+
+    /**
+     * Sync sizes for a product
+     *
+     * @param int $productId
+     * @param array $sizeIds
+     * @return \App\Models\Product
+     */
+    public function syncSizes(int $productId, array $sizeIds);
 }

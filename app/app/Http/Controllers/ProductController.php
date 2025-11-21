@@ -67,14 +67,16 @@ class ProductController extends BaseController
                 'success' => true,
                 'message' => 'Create form data',
                 'resourceName' => $this->resourceName,
-                'materials' => $data['materials']
+                'materials' => $data['materials'],
+                'categoryModels' => $data['categoryModels'] ?? []
             ]);
         }
 
         return view($this->viewPath . '.create', [
             'resourceName' => $this->resourceName,
             'materials' => $data['materials'],
-            'categories' => $data['categories'] ?? []
+            'categories' => $data['categories'] ?? [],
+            'categoryModels' => $data['categoryModels'] ?? []
         ]);
     }
 
@@ -94,6 +96,7 @@ class ProductController extends BaseController
                 $request->hasFile('image') ? $request->file('image') : null,
                 $request->has('material_ids') && is_array($request->material_ids) ? $request->material_ids : null,
                 $request->has('quantities') && is_array($request->quantities) ? $request->quantities : null,
+                $request->has('size_ids') && is_array($request->size_ids) ? $request->size_ids : null,
             );
 
             return $this->respondWith(
@@ -127,7 +130,7 @@ class ProductController extends BaseController
     public function show($id)
     {
         $item = $this->repository->find($id);
-        $item->load('materials');
+        $item->load('materials', 'sizes');
 
         if (request()->wantsJson()) {
             return $this->successResponse($item);
@@ -152,7 +155,8 @@ class ProductController extends BaseController
         if (request()->wantsJson()) {
             return $this->successResponse([
                 'item' => $data['item'],
-                'materials' => $data['materials']
+                'materials' => $data['materials'],
+                'categoryModels' => $data['categoryModels'] ?? []
             ]);
         }
 
@@ -160,6 +164,7 @@ class ProductController extends BaseController
             'item' => $data['item'],
             'materials' => $data['materials'],
             'categories' => $data['categories'] ?? [],
+            'categoryModels' => $data['categoryModels'] ?? [],
             'resourceName' => $this->resourceName
         ]);
     }
@@ -179,6 +184,7 @@ class ProductController extends BaseController
             $id,
             $validated,
             $request->hasFile('image') ? $request->file('image') : null,
+            $request->has('size_ids') && is_array($request->size_ids) ? $request->size_ids : null,
         );
 
         return $this->respondWith(
@@ -206,7 +212,7 @@ class ProductController extends BaseController
             'category' => 'required|string|max:100',
             'price' => 'required|numeric|min:1',
             'unit' => 'required|string|in:booklet,box,piece,pack,ream,set,sheet',
-            'status' => 'required|string|in:Available,Unavailable,Phase Out',
+            'status' => 'nullable|string|in:Available,Unavailable,Phase Out',
             'active' => 'boolean',
             'notes' => 'nullable|string',
             'material_ids' => 'nullable|array',
@@ -214,6 +220,8 @@ class ProductController extends BaseController
             'quantities' => 'nullable|array',
             'quantities.*' => 'numeric|min:0.01',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'size_ids' => 'nullable|array',
+            'size_ids.*' => 'exists:sizes,id',
         ]);
     }
 

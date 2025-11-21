@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Repositories\ProductRepositoryInterface;
 use App\Repositories\MaterialRepositoryInterface;
+use App\Repositories\CategoryRepositoryInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +14,7 @@ class ProductService
     public function __construct(
         protected ProductRepositoryInterface $products,
         protected MaterialRepositoryInterface $materials,
+        protected CategoryRepositoryInterface $categories,
     ) {}
 
     public function getIndexData(): array
@@ -35,12 +37,18 @@ class ProductService
         return [
             'materials' => $this->materials->all(),
             'categories' => $this->products->getUniqueCategories(),
+            'categoryModels' => $this->categories->all(),
         ];
     }
 
-    public function create(array $data, ?UploadedFile $image = null, ?array $materialIds = null, ?array $quantities = null)
+    public function create(array $data, ?UploadedFile $image = null, ?array $materialIds = null, ?array $quantities = null, ?array $sizeIds = null)
     {
-        return DB::transaction(function () use ($data, $image, $materialIds, $quantities) {
+        return DB::transaction(function () use ($data, $image, $materialIds, $quantities, $sizeIds) {
+            // Default status to Available when not provided
+            if (!isset($data['status']) || empty($data['status'])) {
+                $data['status'] = 'Available';
+            }
+
             if ($image && $image->isValid()) {
                 $path = $image->store('products', 'public');
                 $data['image_path'] = $path;
@@ -60,22 +68,28 @@ class ProductService
                 }
             }
 
-            return $item->load('materials');
+            // Attach sizes if provided
+            if (is_array($sizeIds) && !empty($sizeIds)) {
+                $this->products->syncSizes($item->id, array_map('intval', $sizeIds));
+            }
+
+            return $item->load('materials', 'sizes');
         });
     }
 
     public function getEditData(string|int $id): array
     {
         $item = $this->products->find($id);
-        $item->load('materials');
+        $item->load('materials', 'sizes');
         return [
             'item' => $item,
             'materials' => $this->materials->all(),
             'categories' => $this->products->getUniqueCategories(),
+            'categoryModels' => $this->categories->all(),
         ];
     }
 
-    public function update(string|int $id, array $data, ?UploadedFile $image = null)
+    public function update(string|int $id, array $data, ?UploadedFile $image = null, ?array $sizeIds = null)
     {
         $item = $this->products->find($id);
 
@@ -93,7 +107,12 @@ class ProductService
             $this->products->update($id, $data);
         }
 
-        return $this->products->find($id);
+        // Sync sizes if provided
+        if (is_array($sizeIds)) {
+            $this->products->syncSizes($id, array_map('intval', $sizeIds));
+        }
+
+        return $this->products->find($id)->load('materials', 'sizes');
     }
 
     public function destroy(string|int $id): void

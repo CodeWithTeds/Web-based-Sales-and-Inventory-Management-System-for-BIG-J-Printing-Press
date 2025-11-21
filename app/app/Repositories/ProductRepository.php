@@ -124,4 +124,18 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
     {
         return (float) $this->model->avg('price');
     }
+
+    /**
+     * Sync sizes for a product
+     *
+     * @param int $productId
+     * @param array $sizeIds
+     * @return \App\Models\Product
+     */
+    public function syncSizes(int $productId, array $sizeIds)
+    {
+        $product = $this->find($productId);
+        $product->sizes()->sync($sizeIds);
+        return $product->fresh(['sizes']);
+    }
 }

@@ -34,13 +34,15 @@ class ProductRequest extends FormRequest
             'category' => 'required|string|max:100',
             'price' => 'required|numeric|min:1',
             'unit' => 'required|string|in:booklet,box,piece,pack,ream,set,sheet',
-            'status' => 'required|string|in:Available,Unavailable,Phase Out',
+            'status' => 'nullable|string|in:Available,Unavailable,Phase Out',
             'active' => 'boolean',
             'notes' => 'nullable|string',
             'material_ids' => 'nullable|array',
             'material_ids.*' => 'exists:materials,id',
             'quantities' => 'nullable|array',
             'quantities.*' => 'numeric|min:0.01',
+            'size_ids' => 'nullable|array',
+            'size_ids.*' => 'exists:sizes,id',
         ];
 
         // Add image validation only for new products or when updating with a new image

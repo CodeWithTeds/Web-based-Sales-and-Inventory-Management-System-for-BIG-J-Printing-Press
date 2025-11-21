@@ -18,4 +18,9 @@ class Category extends Model
     protected $casts = [
         'status' => 'string',
     ];
+
+    public function sizes()
+    {
+        return $this->hasMany(Size::class);
+    }
 }

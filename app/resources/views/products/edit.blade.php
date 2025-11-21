@@ -32,8 +32,8 @@
                             <x-input-label for="category" :value="__('Category')" />
                             <select id="category" name="category" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
                                 <option value="" disabled>Select category</option>
-                                @foreach(($categories ?? []) as $category)
-                                    <option value="{{ $category }}" {{ old('category', $item->category) === $category ? 'selected' : '' }}>{{ $category }}</option>
+                                @foreach(($categoryModels ?? []) as $cat)
+                                    <option value="{{ $cat->name }}" data-id="{{ $cat->id }}" {{ old('category', $item->category) === $cat->name ? 'selected' : '' }}>{{ $cat->name }}</option>
                                 @endforeach
                             </select>
                             <x-input-error :messages="$errors->get('category')" class="mt-2" />
@@ -105,6 +105,16 @@
                             <x-input-error :messages="$errors->get('notes')" class="mt-2" />
                         </div>
 
+                        <!-- Sizes -->
+                        <div class="mt-6">
+                            <x-input-label :value="__('Sizes')" />
+                            <p class="text-xs text-gray-500 mb-2">Select applicable sizes for this product. Options depend on the selected category.</p>
+                            <div id="sizeCheckboxesContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                                <!-- Size checkboxes will be injected here -->
+                            </div>
+                            <x-input-error :messages="$errors->get('size_ids')" class="mt-2" />
+                        </div>
+
                         <div class="flex items-center justify-end mt-4">
                             <a href="{{ route('products.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-400 focus:bg-gray-400 active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 mr-2">
                                 {{ __('Cancel') }}
@@ -118,4 +128,68 @@
             </div>
         </div>
     </div>
+    <script>
+        (function() {
+            const categorySelect = document.getElementById('category');
+            const container = document.getElementById('sizeCheckboxesContainer');
+            const preselected = @json(old('size_ids', ($item->sizes ?? collect())->pluck('id')));
+
+            function renderSizes(sizes) {
+                container.innerHTML = '';
+                if (!sizes || sizes.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 text-sm">No sizes available for the selected category.</p>';
+                    return;
+                }
+                sizes.forEach(size => {
+                    const isChecked = preselected && preselected.includes(Number(size.id));
+                    const wrapper = document.createElement('label');
+                    wrapper.className = 'inline-flex items-center space-x-2 px-3 py-2 border rounded-md hover:bg-gray-50';
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.name = 'size_ids[]';
+                    checkbox.value = size.id;
+                    checkbox.checked = !!isChecked;
+                    checkbox.className = 'rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500';
+
+                    const span = document.createElement('span');
+                    span.textContent = size.name;
+
+                    wrapper.appendChild(checkbox);
+                    wrapper.appendChild(span);
+
+                    container.appendChild(wrapper);
+                });
+            }
+
+            async function loadSizes(categoryId) {
+                if (!categoryId) {
+                    renderSizes([]);
+                    return;
+                }
+                try {
+                    const res = await fetch(`/sizes/by-category/${categoryId}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                    if (!res.ok) throw new Error('Failed to fetch sizes');
+                    const json = await res.json();
+                    renderSizes((Array.isArray(json.items) ? json.items : (json.sizes || [])));
+                } catch (e) {
+                    console.error(e);
+                    renderSizes([]);
+                }
+            }
+
+            function getSelectedCategoryId() {
+                const opt = categorySelect.options[categorySelect.selectedIndex];
+                return opt ? opt.getAttribute('data-id') : null;
+            }
+
+            // Initial load
+            loadSizes(getSelectedCategoryId());
+
+            // On category change
+            categorySelect.addEventListener('change', () => {
+                loadSizes(getSelectedCategoryId());
+            });
+        })();
+    </script>
 </x-app-layout>

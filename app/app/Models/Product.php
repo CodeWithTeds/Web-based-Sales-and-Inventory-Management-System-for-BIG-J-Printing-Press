@@ -31,4 +31,10 @@ class Product extends Model
             return $material->pivot->quantity * $material->unit_price;
         });
     }
+
+    public function sizes()
+    {
+        return $this->belongsToMany(Size::class, 'product_size')
+            ->withTimestamps();
+    }
 }
