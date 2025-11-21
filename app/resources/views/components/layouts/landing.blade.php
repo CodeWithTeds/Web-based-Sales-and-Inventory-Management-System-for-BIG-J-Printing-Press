@@ -79,7 +79,7 @@
             <div class="flex flex-col md:flex-row justify-between">
                 <div class="mb-8 md:mb-0">
                     <div class="flex items-center mb-4">
-                        <span class="text-2xl font-bold text-primary">BIG J</span>
+                        <span class="text-2xl font-bold text-primary">PROF</span>
                         <span class="ml-2 text-gray-300">Printing Press</span>
                     </div>
                     <p class="text-gray-400 max-w-xs">
