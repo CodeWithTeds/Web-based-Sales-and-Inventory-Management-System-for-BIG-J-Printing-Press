@@ -14,6 +14,8 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(\App\Repositories\SupplierRepositoryInterface::class, \App\Repositories\SupplierRepository::class);
         // Driver repository binding
         $this->app->bind(\App\Repositories\DriverRepositoryInterface::class, \App\Repositories\DriverRepository::class);
+        // Category repository binding
+        $this->app->bind(\App\Repositories\CategoryRepositoryInterface::class, \App\Repositories\CategoryRepository::class);
     }
 
     public function boot(): void
