@@ -4,7 +4,7 @@
         <div class="text-center mb-16">
             <h2 class="text-3xl md:text-4xl font-bold mb-4">Powerful Features</h2>
             <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                Our system provides everything you need to manage your printing business efficiently.
+                Our business provides everything you need to manage your printing needs efficiently.
             </p>
         </div>
 
@@ -16,7 +16,7 @@
                 </div>
                 <h3 class="text-xl font-semibold mb-3">Inventory Tracking</h3>
                 <p class="text-gray-600">
-                    Monitor stock levels, set reorder points, and receive alerts when inventory is low.
+                    Stock levels are monitored to prevent business operations delay.
                 </p>
             </div>
 
@@ -25,9 +25,9 @@
                 <div class="inline-block p-4 bg-primary bg-opacity-10 rounded-full mb-4">
                     <i class="fas fa-chart-line text-primary text-3xl"></i>
                 </div>
-                <h3 class="text-xl font-semibold mb-3">Sales Monitoring</h3>
+                <h3 class="text-xl font-semibold mb-3">Orders Monitoring</h3>
                 <p class="text-gray-600">
-                    Track sales performance, customer orders, and payment status in real-time.
+                    Monitor your order and payment status in real-time.
                 </p>
             </div>
 
@@ -36,9 +36,9 @@
                 <div class="inline-block p-4 bg-primary bg-opacity-10 rounded-full mb-4">
                     <i class="fas fa-file-alt text-primary text-3xl"></i>
                 </div>
-                <h3 class="text-xl font-semibold mb-3">Automated Reports</h3>
+                <h3 class="text-xl font-semibold mb-3">Integrated Payment</h3>
                 <p class="text-gray-600">
-                    Generate detailed reports on sales, inventory, and business performance with a single click.
+                    Integrated GCash payment system for easy and secure transactions.
                 </p>
             </div>
 

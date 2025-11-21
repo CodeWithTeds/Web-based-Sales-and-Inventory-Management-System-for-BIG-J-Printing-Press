@@ -6,7 +6,7 @@
                 <img src="{{ asset('images/logo.png') }}" alt="Printing Press Operations" class="rounded-lg shadow-xl w-full">
             </div>
             <div class="md:w-1/2 md:pl-12">
-                <h2 class="text-3xl md:text-4xl font-bold mb-6">Why Choose Our System?</h2>
+                <h2 class="text-3xl md:text-4xl font-bold mb-6">Why Choose Big J Printing Press?</h2>
                 
                 <div class="mb-6">
                     <h3 class="text-xl font-semibold flex items-center mb-2">
@@ -49,11 +49,11 @@
 <!-- Call to Action -->
 <section class="py-16 bg-primary">
     <div class="container mx-auto px-4 text-center">
-        <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">Ready to Transform Your Printing Business?</h2>
+        <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">Ready to Transform Your Business Operations?</h2>
         <p class="text-xl text-white opacity-90 mb-8 max-w-3xl mx-auto">
             Join BIG J Printing Press and experience the power of our Web-based Sales and Inventory Management System.
         </p>
-        <a href="#" class="bg-white text-primary px-8 py-3 rounded-md font-semibold text-lg inline-block hover:bg-gray-100 transition-colors">
+        <a href="{{route('login')}}" class="bg-white text-primary px-8 py-3 rounded-md font-semibold text-lg inline-block hover:bg-gray-100 transition-colors">
             Get Started Today
         </a>
     </div>

@@ -33,11 +33,15 @@
                         <p class="text-xs text-white/90 opacity-90">{{ __('Active Users') }}</p>
                         <p class="text-lg font-semibold text-white">{{ App\Models\User::count() }}</p>
                     </div>
+                    @endif
+
+                    @if(auth()->check() && auth()->user()->isAdmin())
                     <div class="rounded-xl bg-white/10 p-3 backdrop-blur-sm">
                         <p class="text-xs text-white/90 opacity-90">{{ __('Revenue') }}</p>
                         <p class="text-lg font-semibold text-white">₱{{ number_format(App\Models\Order::sum('total') ?? 0, 2) }}</p>
                     </div>
                     @endif
+                    
                 </div>
             </div>
             
@@ -192,6 +196,7 @@
                      <p class="text-sm text-gray-600">{{ __('Active Users') }}</p>
                      <p class="text-lg font-semibold text-[#D62F1A]">{{ App\Models\User::count() }}</p>
                  </div>
+                 @if(auth()->check() && auth()->user()->isAdmin())
                  <div class="text-center">
                      <div class="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-[#F8F8F5] border border-gray-200">
                          <svg class="h-6 w-6 text-[#D62F1A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -201,6 +206,7 @@
                      <p class="text-sm text-gray-600">{{ __('Revenue') }}</p>
                      <p class="text-lg font-semibold text-[#D62F1A]">₱{{ number_format(App\Models\Order::sum('total'), 2) }}</p>
                  </div>
+                 @endif
              </div>
          </div>
          @endif

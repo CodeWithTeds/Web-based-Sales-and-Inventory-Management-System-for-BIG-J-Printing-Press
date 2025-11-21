@@ -91,10 +91,8 @@
                     <div>
                         <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
                         <ul class="space-y-2">
-                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Home</a></li>
                             <li><a href="#features" class="text-gray-400 hover:text-white transition-colors">Features</a></li>
                             <li><a href="#why-us" class="text-gray-400 hover:text-white transition-colors">Why Us</a></li>
-                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Contact</a></li>
                         </ul>
                     </div>
                     
@@ -103,15 +101,15 @@
                         <ul class="space-y-2">
                             <li class="flex items-center">
                                 <i class="fas fa-map-marker-alt text-primary mr-2"></i>
-                                <span class="text-gray-400">123 Printing Ave, Manila</span>
+                                <span class="text-gray-400">T.Alonzo St, Calamba, 4027 Laguna</span>
                             </li>
                             <li class="flex items-center">
                                 <i class="fas fa-phone text-primary mr-2"></i>
-                                <span class="text-gray-400">+63 123 456 7890</span>
+                                <span class="text-gray-400">(049) 508 2593</span>
                             </li>
                             <li class="flex items-center">
                                 <i class="fas fa-envelope text-primary mr-2"></i>
-                                <span class="text-gray-400">info@bigjprinting.com</span>
+                                <span class="text-gray-400">bigj_printing@yahoo.com</span>
                             </li>
                         </ul>
                     </div>
@@ -119,17 +117,8 @@
                     <div>
                         <h3 class="text-lg font-semibold mb-4">Follow Us</h3>
                         <div class="flex space-x-4">
-                            <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <a href="https://www.facebook.com/BIGJPRINTING" target="_blank" class="text-gray-400 hover:text-white transition-colors">
                                 <i class="fab fa-facebook-f text-xl"></i>
-                            </a>
-                            <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                                <i class="fab fa-twitter text-xl"></i>
-                            </a>
-                            <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                                <i class="fab fa-instagram text-xl"></i>
-                            </a>
-                            <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                                <i class="fab fa-linkedin-in text-xl"></i>
                             </a>
                         </div>
                     </div>
@@ -137,7 +126,7 @@
             </div>
             
             <div class="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400">
-                <p>&copy; 2023 BIG J Printing Press. All rights reserved.</p>
+                <p>&copy; 2025 BIG J Printing Press. All rights reserved.</p>
             </div>
         </div>
     </footer>
