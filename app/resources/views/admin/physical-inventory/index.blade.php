@@ -64,7 +64,7 @@
                                         <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{{ $item->name }}</td>
                                         <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{{ $item->quantity }}</td>
                                         <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            <input type="number" value="{{ $item->quantity }}" class="block w-24 rounded-md border-gray-300 text-sm" readonly>
+                                            <input type="number" value="{{ $item->physical_count ?? '' }}" class="block w-24 rounded-md border-gray-300 text-sm" readonly>
                                         </td>
                                         <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                                             <input type="text" value="{{ $item->notes }}" class="block w-48 rounded-md border-gray-300 text-sm" readonly>
@@ -126,7 +126,7 @@
                                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                     <div>
                                                         <label for="physical_count_{{ $item->id }}" class="block text-base font-medium text-gray-800">{{ __('Physical Count') }}</label>
-                                                        <input id="physical_count_{{ $item->id }}" name="physical_count" type="number" min="0" value="{{ old('physical_count', $item->quantity) }}" class="mt-2 block w-full rounded-md border-gray-300 text-base p-3">
+                                                        <input id="physical_count_{{ $item->id }}" name="physical_count" type="number" min="0" value="{{ old('physical_count', $item->physical_count ?? $item->quantity) }}" class="mt-2 block w-full rounded-md border-gray-300 text-base p-3">
                                                     </div>
                                                     <div class="md:col-span-2">
                                                         <label for="remarks_{{ $item->id }}" class="block text-base font-medium text-gray-800">{{ __('Remarks') }}</label>

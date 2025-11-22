@@ -42,7 +42,8 @@ class PhysicalInventoryController extends Controller
             'remarks' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $product->quantity = (int) ($data['physical_count'] ?? $product->quantity);
+        // Store physical count separately; do not alter system quantity
+        $product->physical_count = (int) ($data['physical_count'] ?? $product->physical_count);
         if (array_key_exists('remarks', $data)) {
             $product->notes = $data['remarks'];
         }

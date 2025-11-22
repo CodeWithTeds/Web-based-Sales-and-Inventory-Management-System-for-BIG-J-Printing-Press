@@ -10,11 +10,12 @@ class Material extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'description', 'category', 'unit', 'quantity', 'reorder_level', 'unit_price', 'supplier', 'notes'
+        'name', 'description', 'category', 'unit', 'quantity', 'physical_count', 'reorder_level', 'unit_price', 'supplier', 'notes'
     ];
 
     protected $casts = [
         'quantity' => 'decimal:2',
+        'physical_count' => 'decimal:2',
         'unit_price' => 'decimal:2'
     ];
 

@@ -48,7 +48,8 @@ class MaterialPhysicalInventoryController extends Controller
             'remarks' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $material->quantity = (float) ($data['physical_count'] ?? 0);
+        // Store physical count separately; do not alter system quantity
+        $material->physical_count = (float) ($data['physical_count'] ?? 0);
         if (array_key_exists('remarks', $data)) {
             $material->notes = $data['remarks'];
         }
