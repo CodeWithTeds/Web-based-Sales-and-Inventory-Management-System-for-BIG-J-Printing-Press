@@ -26,10 +26,17 @@
                             <x-input-error :messages="$errors->get('description')" class="mt-2" />
                         </div>
 
-                        <!-- Category -->
+                        <!-- Category (Admin-managed) -->
                         <div class="mt-4">
                             <x-input-label for="category" :value="__('Category')" />
-                            <x-text-input id="category" class="block mt-1 w-full" type="text" name="category" :value="old('category')" required />
+                            <select id="category" name="category" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                                <option value="">{{ __('Select a category') }}</option>
+                                @if(isset($categoryModels))
+                                    @foreach($categoryModels as $cat)
+                                        <option value="{{ $cat->name }}" {{ old('category') === $cat->name ? 'selected' : '' }}>{{ $cat->name }}</option>
+                                    @endforeach
+                                @endif
+                            </select>
                             <x-input-error :messages="$errors->get('category')" class="mt-2" />
                         </div>
 

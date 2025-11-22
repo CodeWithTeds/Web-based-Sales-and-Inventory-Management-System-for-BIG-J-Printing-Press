@@ -10,6 +10,7 @@ use App\Repositories\MaterialRepositoryInterface;
 use App\Services\MaterialService;
 use Illuminate\Http\Request;
 use App\Models\Material;
+use App\Models\Category;
 use Illuminate\Http\JsonResponse as HttpJsonResponse;
 use App\Traits\ResponseHelpers;
 use App\Repositories\SupplierRepositoryInterface;
@@ -40,6 +41,8 @@ class MaterialController extends BaseController
     public function create()
     {
         $suppliers = $this->suppliers->all();
+        // Load admin-managed categories for dropdown selection
+        $categoryModels = Category::orderBy('name')->get();
 
         if (request()->wantsJson()) {
             return response()->json([
@@ -47,12 +50,14 @@ class MaterialController extends BaseController
                 'message' => 'Create form data',
                 'resourceName' => $this->resourceName,
                 'suppliers' => $suppliers,
+                'categoryModels' => $categoryModels,
             ]);
         }
 
         return view($this->viewPath . '.create', [
             'resourceName' => $this->resourceName,
             'suppliers' => $suppliers,
+            'categoryModels' => $categoryModels,
         ]);
     }
 
@@ -66,6 +71,8 @@ class MaterialController extends BaseController
     {
         $item = $this->repository->find($id);
         $suppliers = $this->suppliers->all();
+        // Load admin-managed categories for dropdown selection
+        $categoryModels = Category::orderBy('name')->get();
 
         if (request()->wantsJson()) {
             return response()->json([
@@ -74,13 +81,15 @@ class MaterialController extends BaseController
                     'item' => $item,
                     'suppliers' => $suppliers,
                     'resourceName' => $this->resourceName,
-                ]
+                ],
+                'categoryModels' => $categoryModels,
             ]);
         }
 
         return view($this->viewPath . '.edit', [
             'item' => $item,
             'suppliers' => $suppliers,
+            'categoryModels' => $categoryModels,
             'resourceName' => $this->resourceName,
         ]);
     }

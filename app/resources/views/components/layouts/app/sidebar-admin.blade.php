@@ -4,7 +4,7 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-800">
-        <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+         <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
             <a href="{{ route('dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
@@ -30,7 +30,6 @@
                     @endif
 
                     @if(auth()->check() && auth()->user()->isAdmin())
-                    <flux:navlist.item icon="banknotes" :href="route('admin.pos')" :current="request()->routeIs('admin.pos')" wire:navigate>{{ __('POS') }}</flux:navlist.item>
                     <flux:navlist.item icon="clipboard-document-list" :href="route('admin.activity-logs.index')" :current="request()->routeIs('admin.activity-logs.*')" wire:navigate>{{ __('Activity Logs') }}</flux:navlist.item>
                     <flux:navlist.item icon="currency-dollar" :href="route('admin.outstanding-balances.index')" :current="request()->routeIs('admin.outstanding-balances.*')" wire:navigate>{{ __('Outstanding Balances') }}</flux:navlist.item>
                     <!-- Physical Inventory nav item -->
