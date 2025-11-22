@@ -34,6 +34,8 @@
                     <flux:navlist.item icon="currency-dollar" :href="route('admin.outstanding-balances.index')" :current="request()->routeIs('admin.outstanding-balances.*')" wire:navigate>{{ __('Outstanding Balances') }}</flux:navlist.item>
                     <!-- Physical Inventory nav item -->
                     <flux:navlist.item icon="clipboard-document-check" :href="route('admin.physical-inventory.index')" :current="request()->routeIs('admin.physical-inventory.*')" wire:navigate>{{ __('Physical Inventory') }}</flux:navlist.item>
+                    <!-- Materials Physical Inventory nav item -->
+                    <flux:navlist.item icon="clipboard-document-check" :href="route('admin.materials-physical-inventory.index')" :current="request()->routeIs('admin.materials-physical-inventory.*')" wire:navigate>{{ __('Materials Inventory') }}</flux:navlist.item>
                     @endif
 
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isStaff()))

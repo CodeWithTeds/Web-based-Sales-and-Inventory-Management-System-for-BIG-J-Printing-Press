@@ -275,6 +275,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // Physical Inventory
     Route::get('/physical-inventory', [PhysicalInventoryController::class, 'index'])->name('admin.physical-inventory.index');
     Route::post('/physical-inventory/{product}', [PhysicalInventoryController::class, 'update'])->name('admin.physical-inventory.update');
+
+    // Materials Physical Inventory
+    Route::get('/materials-physical-inventory', [\App\Http\Controllers\Admin\MaterialPhysicalInventoryController::class, 'index'])->name('admin.materials-physical-inventory.index');
+    Route::post('/materials-physical-inventory/{material}', [\App\Http\Controllers\Admin\MaterialPhysicalInventoryController::class, 'update'])->name('admin.materials-physical-inventory.update');
 });
 
 // Staff routes
