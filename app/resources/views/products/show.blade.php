@@ -66,6 +66,11 @@
                                 </div>
 
                                 <div>
+                                    <h4 class="text-sm font-medium text-gray-500">Quantity</h4>
+                                    <p class="mt-1">{{ $item->quantity }}</p>
+                                </div>
+
+                                <div>
                                     <h4 class="text-sm font-medium text-gray-500">Price</h4>
                                     <p class="mt-1 font-semibold">₱{{ number_format($item->price, 2) }}</p>
                                 </div>

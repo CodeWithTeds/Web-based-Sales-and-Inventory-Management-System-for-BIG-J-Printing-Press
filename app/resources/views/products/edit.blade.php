@@ -41,14 +41,14 @@
 
                         <div class="flex mt-4 space-x-4">
                             <!-- Price -->
-                            <div class="w-1/2">
+                            <div class="w-1/3">
                                 <x-input-label for="price" :value="__('Price')" />
                                 <x-text-input id="price" class="block mt-1 w-full" type="number" name="price" :value="old('price', $item->price)" required step="0.01" min="0" />
                                 <x-input-error :messages="$errors->get('price')" class="mt-2" />
                             </div>
 
                             <!-- Unit -->
-                            <div class="w-1/2">
+                            <div class="w-1/3">
                                 <x-input-label for="unit" :value="__('Unit (how product is sold)')" />
                                 <select id="unit" name="unit" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
                                     @php
@@ -60,6 +60,13 @@
                                     @endforeach
                                 </select>
                                 <x-input-error :messages="$errors->get('unit')" class="mt-2" />
+                            </div>
+
+                            <!-- Quantity -->
+                            <div class="w-1/3">
+                                <x-input-label for="quantity" :value="__('Quantity (available stock)')" />
+                                <x-text-input id="quantity" class="block mt-1 w-full" type="number" name="quantity" :value="old('quantity', $item->quantity)" required step="1" min="0" />
+                                <x-input-error :messages="$errors->get('quantity')" class="mt-2" />
                             </div>
                         </div>
 
@@ -132,7 +139,7 @@
         (function() {
             const categorySelect = document.getElementById('category');
             const container = document.getElementById('sizeCheckboxesContainer');
-            const preselected = @json(old('size_ids', ($item->sizes ?? collect())->pluck('id')));
+            const preselected = {!! json_encode(old('size_ids', ($item->sizes ?? collect())->pluck('id')->all())) !!};
 
             function renderSizes(sizes) {
                 container.innerHTML = '';

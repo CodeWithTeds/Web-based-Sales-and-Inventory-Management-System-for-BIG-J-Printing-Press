@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\Admin\OrdersController;
+use App\Http\Controllers\Admin\PhysicalInventoryController;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
@@ -270,6 +271,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 
     // Activity Logs (admin can view all)
     Route::get('/activity-logs', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('admin.activity-logs.index');
+
+    // Physical Inventory
+    Route::get('/physical-inventory', [PhysicalInventoryController::class, 'index'])->name('admin.physical-inventory.index');
+    Route::post('/physical-inventory/{product}', [PhysicalInventoryController::class, 'update'])->name('admin.physical-inventory.update');
 });
 
 // Staff routes

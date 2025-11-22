@@ -33,6 +33,8 @@
                     <flux:navlist.item icon="banknotes" :href="route('admin.pos')" :current="request()->routeIs('admin.pos')" wire:navigate>{{ __('POS') }}</flux:navlist.item>
                     <flux:navlist.item icon="clipboard-document-list" :href="route('admin.activity-logs.index')" :current="request()->routeIs('admin.activity-logs.*')" wire:navigate>{{ __('Activity Logs') }}</flux:navlist.item>
                     <flux:navlist.item icon="currency-dollar" :href="route('admin.outstanding-balances.index')" :current="request()->routeIs('admin.outstanding-balances.*')" wire:navigate>{{ __('Outstanding Balances') }}</flux:navlist.item>
+                    <!-- Physical Inventory nav item -->
+                    <flux:navlist.item icon="clipboard-document-check" :href="route('admin.physical-inventory.index')" :current="request()->routeIs('admin.physical-inventory.*')" wire:navigate>{{ __('Physical Inventory') }}</flux:navlist.item>
                     @endif
 
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isStaff()))

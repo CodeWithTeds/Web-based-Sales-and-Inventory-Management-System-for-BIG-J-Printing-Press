@@ -211,6 +211,7 @@ class ProductController extends BaseController
             'description' => 'nullable|string',
             'category' => 'required|string|max:100',
             'price' => 'required|numeric|min:1',
+            'quantity' => 'required|integer|min:0',
             'unit' => 'required|string|in:booklet,box,piece,pack,ream,set,sheet',
             'status' => 'nullable|string|in:Available,Unavailable,Phase Out',
             'active' => 'boolean',
