@@ -5,6 +5,7 @@ use Livewire\Volt\Volt;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\Admin\OrdersController;
 use App\Http\Controllers\Admin\PhysicalInventoryController;
+use App\Http\Controllers\Admin\SalesProjectionController;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
@@ -279,6 +280,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // Materials Physical Inventory
     Route::get('/materials-physical-inventory', [\App\Http\Controllers\Admin\MaterialPhysicalInventoryController::class, 'index'])->name('admin.materials-physical-inventory.index');
     Route::post('/materials-physical-inventory/{material}', [\App\Http\Controllers\Admin\MaterialPhysicalInventoryController::class, 'update'])->name('admin.materials-physical-inventory.update');
+
+    // Sales Projection
+    Route::get('/sales-projection', [SalesProjectionController::class, 'index'])->name('admin.sales-projection.index');
 });
 
 // Staff routes

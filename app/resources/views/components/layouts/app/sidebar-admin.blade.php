@@ -32,6 +32,7 @@
                     @if(auth()->check() && auth()->user()->isAdmin())
                     <flux:navlist.item icon="clipboard-document-list" :href="route('admin.activity-logs.index')" :current="request()->routeIs('admin.activity-logs.*')" wire:navigate>{{ __('Activity Logs') }}</flux:navlist.item>
                     <flux:navlist.item icon="currency-dollar" :href="route('admin.outstanding-balances.index')" :current="request()->routeIs('admin.outstanding-balances.*')" wire:navigate>{{ __('Outstanding Balances') }}</flux:navlist.item>
+                    <flux:navlist.item icon="chart-bar" :href="route('admin.sales-projection.index')" :current="request()->routeIs('admin.sales-projection.*')" wire:navigate>{{ __('Sales Projection') }}</flux:navlist.item>
                     <!-- Physical Inventory nav item -->
                     <flux:navlist.item icon="clipboard-document-check" :href="route('admin.physical-inventory.index')" :current="request()->routeIs('admin.physical-inventory.*')" wire:navigate>{{ __('Physical Inventory') }}</flux:navlist.item>
                     <!-- Materials Physical Inventory nav item -->
