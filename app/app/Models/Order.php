@@ -20,6 +20,7 @@ class Order extends Model
         'downpayment',
         'status',
         'delivery_status',
+        'delivery_date',
         'user_id',
         'user_address_id',
         'attachment_path',

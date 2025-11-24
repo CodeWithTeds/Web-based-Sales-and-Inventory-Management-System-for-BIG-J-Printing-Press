@@ -236,6 +236,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/orders', [OrdersController::class, 'index'])->name('admin.orders.index');
     Route::get('/orders/{order}', [OrdersController::class, 'show'])->name('admin.orders.show');
     Route::put('/orders/{order}/delivery-status', [OrdersController::class, 'updateDeliveryStatus'])->name('admin.orders.delivery.update');
+    Route::put('/orders/{order}/approve', [OrdersController::class, 'approve'])->name('admin.orders.approve');
 
     // Staff management: Staff list
     Route::get('/staff', function () {
@@ -318,6 +319,11 @@ Route::middleware(['auth', 'verified', 'role:staff'])->prefix('staff')->group(fu
     Route::get('/orders', [\App\Http\Controllers\Admin\OrdersController::class, 'index'])->name('staff.orders.index');
     Route::get('/orders/{order}', [\App\Http\Controllers\Admin\OrdersController::class, 'show'])->name('staff.orders.show');
     Route::put('/orders/{order}/delivery-status', [\App\Http\Controllers\Admin\OrdersController::class, 'updateDeliveryStatus'])->name('staff.orders.delivery.update');
+
+    // Staff Purchase Requests
+    Route::get('/purchase-requests', [\App\Http\Controllers\Staff\PurchaseRequestController::class, 'selectCategory'])->name('staff.purchase-requests.select-category');
+    Route::get('/purchase-requests/create/{category}', [\App\Http\Controllers\Staff\PurchaseRequestController::class, 'createByCategory'])->name('staff.purchase-requests.create');
+    Route::post('/purchase-requests', [\App\Http\Controllers\Staff\PurchaseRequestController::class, 'store'])->name('staff.purchase-requests.store');
 
     // My Activity Logs (staff sees own)
     Route::get('/activity-logs', [\App\Http\Controllers\Staff\ActivityLogController::class, 'index'])->name('staff.activity-logs.index');
