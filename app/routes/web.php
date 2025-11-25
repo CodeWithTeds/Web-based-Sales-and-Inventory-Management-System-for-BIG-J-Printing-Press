@@ -400,6 +400,7 @@ Route::middleware(['auth', 'verified', 'role:client'])->prefix('client')->group(
 
     // Client Purchase Requests
     Route::get('/purchase-requests', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'selectCategory'])->name('client.purchase-requests.select-category');
+    Route::get('/purchase-requests/payment', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'payment'])->name('client.purchase-requests.payment');
     Route::get('/purchase-requests/create/{category}', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'createByCategory'])->name('client.purchase-requests.create');
     Route::post('/purchase-requests', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'store'])->name('client.purchase-requests.store');
 
@@ -412,4 +413,9 @@ Route::middleware(['auth', 'verified', 'role:client'])->prefix('client')->group(
     Route::get('/purchase-requests/paymongo/start', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'paymongoStartDownpayment'])->name('client.purchase-requests.paymongo.start');
     Route::get('/purchase-requests/paymongo/success', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'paymongoDownpaymentSuccess'])->name('client.purchase-requests.paymongo.success');
     Route::get('/purchase-requests/paymongo/cancel', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'paymongoDownpaymentCancel'])->name('client.purchase-requests.paymongo.cancel');
+
+    // Client Purchase Requests: PayMongo remaining balance flow
+    Route::get('/purchase-requests/paymongo/remaining/start', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'paymongoStartRemaining'])->name('client.purchase-requests.paymongo.remaining.start');
+    Route::get('/purchase-requests/paymongo/remaining/success', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'paymongoRemainingSuccess'])->name('client.purchase-requests.paymongo.remaining.success');
+    Route::get('/purchase-requests/paymongo/remaining/cancel', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'paymongoRemainingCancel'])->name('client.purchase-requests.paymongo.remaining.cancel');
 });

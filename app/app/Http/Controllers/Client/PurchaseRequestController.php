@@ -326,4 +326,175 @@ class PurchaseRequestController extends Controller
         session()->forget('paymongo.downpayment_amount');
         return redirect()->route('client.purchase-requests.select-category')->with('error', 'Payment canceled.');
     }
+
+    /**
+     * Show PR Payment page with payment records and downpayment status.
+     */
+    public function payment(Request $request)
+    {
+        $pending = $this->getPendingPRForUser(Auth::id());
+        $approved = $this->getApprovedPRForUser(Auth::id());
+
+        $payments = collect();
+        if ($approved) {
+            $payments = Payment::where('order_id', $approved->id)->latest()->get();
+        }
+
+        return view('client.purchase-requests.payment', [
+            'pendingOrder' => $pending,
+            'approvedOrder' => $approved,
+            'payments' => $payments,
+        ]);
+    }
+    /**
+     * Start PayMongo checkout for remaining balance of the latest approved PR.
+     */
+    public function paymongoStartRemaining(Request $request)
+    {
+        $order = $this->getApprovedPRForUser(Auth::id());
+        if (!$order) {
+            return redirect()->route('client.purchase-requests.select-category')
+                ->with('error', 'No approved Purchase Request found.');
+        }
+
+        $total = (float) ($order->total ?? 0);
+        $paid = (float) ($order->downpayment ?? 0);
+        $remaining = round(max(0.0, $total - $paid), 2);
+        if ($remaining <= 0) {
+            return redirect()->route('client.purchase-requests.payment')
+                ->with('status', 'No remaining balance to pay for order #' . $order->order_number . '.');
+        }
+
+        $successUrl = route('client.purchase-requests.paymongo.remaining.success');
+        $cancelUrl = route('client.purchase-requests.paymongo.remaining.cancel');
+        $description = 'Remaining Balance for PR ' . $order->order_number;
+        $reference = 'PRRB-' . now()->format('YmdHis') . '-' . random_int(1000, 9999);
+
+        $amountCentavos = (int) round($remaining * 100);
+        $payload = [
+            'data' => [
+                'attributes' => [
+                    'line_items' => [[
+                        'name' => $description,
+                        'quantity' => 1,
+                        'amount' => $amountCentavos,
+                        'currency' => 'PHP',
+                    ]],
+                    'payment_method_types' => ['gcash'],
+                    'success_url' => $successUrl,
+                    'cancel_url' => $cancelUrl,
+                    'description' => $description,
+                    'send_email_receipt' => false,
+                    'show_line_items' => true,
+                    'show_description' => true,
+                    'reference_number' => $reference,
+                ],
+            ],
+        ];
+
+        try {
+            $response = Http::withBasicAuth(config('services.paymongo.secret'), '')
+                ->acceptJson()
+                ->asJson()
+                ->post(rtrim(config('services.paymongo.base_url'), '/') . '/v1/checkout_sessions', $payload);
+
+            if (!$response->successful()) {
+                $err = $response->json('errors.0.detail') ?? $response->body();
+                return redirect()->route('client.purchase-requests.payment')->with('error', 'PayMongo error: ' . $err);
+            }
+
+            $data = $response->json('data');
+            $checkoutUrl = $data['attributes']['checkout_url'] ?? null;
+            $csId = $data['id'] ?? null;
+            if (!$checkoutUrl || !$csId) {
+                return redirect()->route('client.purchase-requests.payment')->with('error', 'Invalid PayMongo response.');
+            }
+
+            // Persist session details to complete payment after successful checkout
+            session()->put('paymongo.remaining.checkout_session_id', $csId);
+            session()->put('paymongo.remaining.order_id', $order->id);
+            session()->put('paymongo.remaining_amount', $remaining);
+
+            if ($request->header('HX-Request')) {
+                return response('', 204)->header('HX-Redirect', $checkoutUrl);
+            }
+            return redirect()->away($checkoutUrl);
+        } catch (\Throwable $e) {
+            return redirect()->route('client.purchase-requests.payment')->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * PayMongo success handler for remaining balance: verify payment and update order.
+     */
+    public function paymongoRemainingSuccess()
+    {
+        $csId = session()->get('paymongo.remaining.checkout_session_id');
+        $orderId = session()->get('paymongo.remaining.order_id');
+        $amount = (float) session()->get('paymongo.remaining_amount');
+        if (!$csId || !$orderId) {
+            return redirect()->route('client.purchase-requests.payment')->with('error', 'Missing checkout session.');
+        }
+
+        try {
+            $resp = Http::withBasicAuth(config('services.paymongo.secret'), '')
+                ->acceptJson()
+                ->get(rtrim(config('services.paymongo.base_url'), '/') . '/v1/checkout_sessions/' . $csId);
+
+            if (!$resp->successful()) {
+                $err = $resp->json('errors.0.detail') ?? $resp->body();
+                return redirect()->route('client.purchase-requests.payment')->with('error', 'Payment verification error: ' . $err);
+            }
+
+            $payments = $resp->json('data.attributes.payments') ?? [];
+            $paid = false;
+            foreach ($payments as $p) {
+                if (($p['attributes']['status'] ?? null) === 'paid') {
+                    $paid = true;
+                    break;
+                }
+            }
+
+            if (!$paid) {
+                return redirect()->route('client.purchase-requests.payment')->with('error', 'Payment not completed.');
+            }
+        } catch (\Throwable $e) {
+            return redirect()->route('client.purchase-requests.payment')->with('error', 'Payment verification failed: ' . $e->getMessage());
+        }
+
+        // Clear session values
+        session()->forget('paymongo.remaining.checkout_session_id');
+        session()->forget('paymongo.remaining.order_id');
+        session()->forget('paymongo.remaining_amount');
+
+        $order = Order::find($orderId);
+        if (!$order) {
+            return redirect()->route('client.purchase-requests.payment')->with('error', 'Order not found.');
+        }
+
+        // Record payment and update downpayment (acts as total paid tracker)
+        Payment::create([
+            'order_id' => $order->id,
+            'provider' => 'paymongo',
+            'method' => 'gcash',
+            'amount' => $amount,
+            'currency' => 'PHP',
+            'reference' => $csId,
+            'paid_at' => now(),
+        ]);
+
+        $order->downpayment = (float) ($order->downpayment ?? 0) + $amount;
+        $order->save();
+
+        return redirect()->route('client.orders.show', $order)->with('status', 'Remaining balance paid successfully for PR ' . $order->order_number . '.');
+    }
+
+    public function paymongoRemainingCancel()
+    {
+        session()->forget('paymongo.remaining.checkout_session_id');
+        session()->forget('paymongo.remaining.order_id');
+        session()->forget('paymongo.remaining_amount');
+        return redirect()->route('client.purchase-requests.payment')->with('error', 'Remaining payment canceled.');
+    }
+
 }
