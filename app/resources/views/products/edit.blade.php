@@ -39,6 +39,18 @@
                             <x-input-error :messages="$errors->get('category')" class="mt-2" />
                         </div>
 
+                        <!-- Paper Type -->
+                        <div class="mt-4">
+                            <x-input-label for="paper_type" :value="__('Paper Type')" />
+                            <select id="paper_type" name="paper_type" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                                <option value="">Select paper type</option>
+                                <option value="Ordinary" {{ old('paper_type', $item->paper_type) === 'Ordinary' ? 'selected' : '' }}>Ordinary</option>
+                                <option value="Carbon" {{ old('paper_type', $item->paper_type) === 'Carbon' ? 'selected' : '' }}>Carbon</option>
+                                <option value="Newsprint" {{ old('paper_type', $item->paper_type) === 'Newsprint' ? 'selected' : '' }}>Newsprint</option>
+                            </select>
+                            <x-input-error :messages="$errors->get('paper_type')" class="mt-2" />
+                        </div>
+
                         <div class="flex mt-4 space-x-4">
                             <!-- Price -->
                             <div class="w-1/3">

@@ -32,6 +32,7 @@ class ProductRequest extends FormRequest
             'name' => 'required|string|max:255|' . $nameUniqueRule,
             'description' => 'nullable|string',
             'category' => 'required|string|max:100',
+            'paper_type' => 'nullable|string|in:Ordinary,Carbon,Newsprint',
             'price' => 'required|numeric|min:1',
             'quantity' => 'required|integer|min:0',
             'unit' => 'required|string|in:booklet,box,piece,pack,ream,set,sheet',
