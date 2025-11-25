@@ -12,6 +12,30 @@ use Illuminate\Support\Facades\DB;
 
 class OrdersController extends Controller
 {
+    /**
+     * Admin-only: List Purchase Requests (orders with order_number starting PR-).
+     */
+    public function prIndex(Request $request)
+    {
+        // Only show pending Purchase Requests
+        $query = Order::query()->with(['user', 'userAddress', 'items.product', 'payments'])
+            ->where('order_number', 'like', 'PR-%')
+            ->where('status', 'pending');
+
+        if ($search = $request->string('search')->toString()) {
+            $query->where(function ($q) use ($search) {
+                $q->where('order_number', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($q2) use ($search) {
+                      $q2->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Status filter removed to enforce showing only pending PRs
+
+        $orders = $query->latest()->paginate(15)->withQueryString();
+        return view('admin.orders.index', compact('orders'));
+    }
     public function index(Request $request)
     {
         $query = Order::query()->with(['user', 'userAddress', 'items.product', 'payments']);

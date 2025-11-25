@@ -238,6 +238,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::put('/orders/{order}/delivery-status', [OrdersController::class, 'updateDeliveryStatus'])->name('admin.orders.delivery.update');
     Route::put('/orders/{order}/approve', [OrdersController::class, 'approve'])->name('admin.orders.approve');
 
+    // Purchase Requests (admin-only view: filter PR orders)
+    Route::get('/purchase-requests', [OrdersController::class, 'prIndex'])->name('admin.purchase-requests.index');
+
     // Staff management: Staff list
     Route::get('/staff', function () {
         $items = \App\Models\User::where('role', 'staff')->orderBy('name')->paginate(15);
@@ -394,4 +397,14 @@ Route::middleware(['auth', 'verified', 'role:client'])->prefix('client')->group(
         abort_unless($order->user_id === \Illuminate\Support\Facades\Auth::id(), 403);
         return view('client.orders.show', compact('order'));
     })->name('client.orders.show');
+
+    // Client Purchase Requests
+    Route::get('/purchase-requests', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'selectCategory'])->name('client.purchase-requests.select-category');
+    Route::get('/purchase-requests/create/{category}', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'createByCategory'])->name('client.purchase-requests.create');
+    Route::post('/purchase-requests', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'store'])->name('client.purchase-requests.store');
+
+    // Client Purchase Requests: PayMongo downpayment flow
+    Route::get('/purchase-requests/paymongo/start', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'paymongoStartDownpayment'])->name('client.purchase-requests.paymongo.start');
+    Route::get('/purchase-requests/paymongo/success', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'paymongoDownpaymentSuccess'])->name('client.purchase-requests.paymongo.success');
+    Route::get('/purchase-requests/paymongo/cancel', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'paymongoDownpaymentCancel'])->name('client.purchase-requests.paymongo.cancel');
 });

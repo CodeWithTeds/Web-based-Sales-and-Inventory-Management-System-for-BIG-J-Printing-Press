@@ -41,6 +41,9 @@
 
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isStaff()))
                    <flux:navlist.item icon="layout-grid" :href="(auth()->user()->isAdmin() ? route('admin.orders.index') : route('staff.orders.index'))" :current="request()->routeIs(auth()->user()->isAdmin() ? 'admin.orders.*' : 'staff.orders.*')" wire:navigate>{{ __('Orders') }}</flux:navlist.item>
+                    @if(auth()->user()->isAdmin())
+                    <flux:navlist.item icon="clipboard-document-list" :href="route('admin.purchase-requests.index')" :current="request()->routeIs('admin.purchase-requests.*')" wire:navigate>{{ __('Purchase Requests') }}</flux:navlist.item>
+                    @endif
                     @if(auth()->user()->isStaff())
                     <flux:navlist.item icon="clipboard-document-list" :href="route('staff.purchase-requests.select-category')" :current="request()->routeIs('staff.purchase-requests.*')" wire:navigate>{{ __('Purchase Request') }}</flux:navlist.item>
                     @endif
