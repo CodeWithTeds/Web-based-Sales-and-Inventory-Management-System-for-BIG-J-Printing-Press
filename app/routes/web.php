@@ -403,6 +403,11 @@ Route::middleware(['auth', 'verified', 'role:client'])->prefix('client')->group(
     Route::get('/purchase-requests/create/{category}', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'createByCategory'])->name('client.purchase-requests.create');
     Route::post('/purchase-requests', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'store'])->name('client.purchase-requests.store');
 
+    // Client JSON endpoints to power PR flow dynamic dropdowns
+    Route::get('/products/by-category/{category}', [\App\Http\Controllers\ProductController::class, 'byCategory'])->name('client.products.by-category');
+    Route::get('/products/{product}/sizes', [\App\Http\Controllers\ProductController::class, 'sizes'])->name('client.products.sizes');
+    Route::get('/products/paper-types', [\App\Http\Controllers\ProductController::class, 'paperTypes'])->name('client.products.paper-types');
+
     // Client Purchase Requests: PayMongo downpayment flow
     Route::get('/purchase-requests/paymongo/start', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'paymongoStartDownpayment'])->name('client.purchase-requests.paymongo.start');
     Route::get('/purchase-requests/paymongo/success', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'paymongoDownpaymentSuccess'])->name('client.purchase-requests.paymongo.success');

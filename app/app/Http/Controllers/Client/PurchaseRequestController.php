@@ -22,11 +22,18 @@ class PurchaseRequestController extends Controller
      */
     public function selectCategory(Request $request)
     {
-        $categories = Category::where('status', 'active')->orderBy('name')->get();
+        // Use product-derived categories to ensure filtering matches available products
+        $productCategories = Product::query()
+            ->whereNotNull('category')
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category');
         $pending = $this->getPendingPRForUser(Auth::id());
         $approved = $this->getApprovedPRForUser(Auth::id());
         return view('client.purchase-requests.select-category', [
-            'categories' => $categories,
+            // Keep old 'categories' for compatibility, but prefer productCategories in view
+            'categories' => [],
+            'productCategories' => $productCategories,
             'hasPending' => (bool) $pending,
             'pendingOrder' => $pending,
             'approvedOrder' => $approved,

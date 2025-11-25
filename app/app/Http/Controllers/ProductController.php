@@ -275,6 +275,39 @@ class ProductController extends BaseController
     }
 
     /**
+     * Return sizes associated with a product (JSON only).
+     */
+    public function sizes(Product $product)
+    {
+        $product->load('sizes');
+        return $this->successResponse([
+            'product_id' => $product->id,
+            'sizes' => $product->sizes,
+        ]);
+    }
+
+    /**
+     * Return distinct paper types configured across products.
+     */
+    public function paperTypes()
+    {
+        $types = Product::query()
+            ->whereNotNull('paper_type')
+            ->distinct()
+            ->orderBy('paper_type')
+            ->pluck('paper_type');
+
+        // Fallback if none configured yet: provide common defaults
+        if ($types->isEmpty()) {
+            $types = collect(['Ordinary', 'Carbon', 'Newsprint']);
+        }
+
+        return $this->successResponse([
+            'paper_types' => $types,
+        ]);
+    }
+
+    /**
      * Show the form for managing materials for a product.
      *
      * @param  string  $id
