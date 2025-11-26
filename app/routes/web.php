@@ -241,6 +241,20 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // Purchase Requests (admin-only view: filter PR orders)
     Route::get('/purchase-requests', [OrdersController::class, 'prIndex'])->name('admin.purchase-requests.index');
 
+    // Walk-in Purchase Orders (admin-created)
+    Route::get('/purchase-orders/create', [\App\Http\Controllers\Admin\PurchaseOrderController::class, 'create'])
+        ->name('admin.purchase-orders.create');
+    Route::post('/purchase-orders', [\App\Http\Controllers\Admin\PurchaseOrderController::class, 'store'])
+        ->name('admin.purchase-orders.store');
+
+    // JSON endpoints for quick PO UI (mirror client PR endpoints)
+    Route::get('/products/by-category/{category?}', [\App\Http\Controllers\ProductController::class, 'byCategory'])
+        ->name('admin.products.by-category');
+    Route::get('/products/{product}/sizes', [\App\Http\Controllers\ProductController::class, 'sizes'])
+        ->name('admin.products.sizes');
+    Route::get('/products/paper-types', [\App\Http\Controllers\ProductController::class, 'paperTypes'])
+        ->name('admin.products.paper-types');
+
     // Staff management: Staff list
     Route::get('/staff', function () {
         $items = \App\Models\User::where('role', 'staff')->orderBy('name')->paginate(15);

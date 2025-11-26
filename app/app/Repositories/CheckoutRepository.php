@@ -74,4 +74,71 @@ class CheckoutRepository
             return $order;
         });
     }
+
+    /**
+     * Process multiple checkouts atomically under one PO: validate aggregated material stock, create orders and items, then deduct materials.
+     * @param string $poNumber Shared PO number for all orders in the batch
+     * @param array<int, array{orderData:array, items:array<int, array{product_id:int,name:string,qty:int,price:float,line_total:float}>}> $batches
+     * @param array<int,float> $materialRequirements Aggregated requirements across all batches
+     * @return array<int, Order>
+     */
+    public function processBatchCheckout(string $poNumber, array $batches, array $materialRequirements): array
+    {
+        return DB::transaction(function () use ($poNumber, $batches, $materialRequirements) {
+            // Lock materials and validate stock for aggregated requirements
+            if (!empty($materialRequirements)) {
+                $materials = Material::whereIn('id', array_keys($materialRequirements))
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('id');
+
+                $insufficient = [];
+                foreach ($materialRequirements as $materialId => $requiredQty) {
+                    $material = $materials[$materialId] ?? null;
+                    if (!$material) {
+                        throw new \RuntimeException("Material {$materialId} not found");
+                    }
+                    if ((float) $material->quantity < (float) $requiredQty) {
+                        $insufficient[] = [
+                            'name' => $material->name,
+                            'required' => (float) $requiredQty,
+                            'available' => (float) $material->quantity,
+                            'unit' => $material->unit ?? '',
+                        ];
+                    }
+                }
+                if (!empty($insufficient)) {
+                    throw new \RuntimeException('INSUFFICIENT_STOCK:' . json_encode($insufficient));
+                }
+            }
+
+            // Create orders and items
+            $orders = [];
+            foreach ($batches as $batch) {
+                $data = $batch['orderData'];
+                $data['po_number'] = $poNumber;
+                $order = Order::create($data);
+                foreach ($batch['items'] as $it) {
+                    OrderItem::create([
+                        'order_id'   => $order->id,
+                        'product_id' => $it['product_id'],
+                        'name'       => $it['name'],
+                        'qty'        => $it['qty'],
+                        'price'      => $it['price'],
+                        'line_total' => $it['line_total'],
+                    ]);
+                }
+                $orders[] = $order;
+            }
+
+            // Deduct aggregated materials
+            foreach ($materialRequirements as $materialId => $requiredQty) {
+                $material = Material::findOrFail($materialId);
+                $material->quantity -= $requiredQty;
+                $material->save();
+            }
+
+            return $orders;
+        });
+    }
 }
