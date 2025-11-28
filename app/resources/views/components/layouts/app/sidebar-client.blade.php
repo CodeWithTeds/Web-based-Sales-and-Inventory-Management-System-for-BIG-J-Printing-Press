@@ -19,6 +19,15 @@
                     <flux:navlist.item icon="banknotes" :href="route('client.ordering')" :current="request()->routeIs('client.ordering*')" wire:navigate>{{ __('Online Ordering') }}</flux:navlist.item>
                     <flux:navlist.item icon="clipboard-document-list" :href="route('client.purchase-requests.select-category')" :current="request()->routeIs('client.purchase-requests.select-category') || request()->routeIs('client.purchase-requests.create')" wire:navigate>{{ __('Purchase Request') }}</flux:navlist.item>
                     <flux:navlist.item icon="credit-card" :href="route('client.purchase-requests.payment')" :current="request()->routeIs('client.purchase-requests.payment') || request()->routeIs('client.purchase-requests.paymongo.*')" wire:navigate>{{ __('PR Payment') }}</flux:navlist.item>
+                    @php
+                        $hasQuotation = \App\Models\Order::where('user_id', \Illuminate\Support\Facades\Auth::id())
+                            ->where('order_number', 'like', 'PR-%')
+                            ->where(function($q){ $q->where('status', 'approved')->orWhere('total', '>', 0); })
+                            ->exists();
+                    @endphp
+                    @if($hasQuotation)
+                        <flux:navlist.item icon="document-text" :href="route('client.purchase-requests.quotation')" :current="request()->routeIs('client.purchase-requests.quotation')" wire:navigate>{{ __('Quotation') }}</flux:navlist.item>
+                    @endif
                     <flux:navlist.item icon="map-pin" :href="route('address.edit')">{{ __('Address') }}</flux:navlist.item>
                     <flux:navlist.item icon="layout-grid" :href="route('client.orders.index')" :current="request()->routeIs('client.orders.*')" wire:navigate>{{ __('My Orders') }}</flux:navlist.item>
             

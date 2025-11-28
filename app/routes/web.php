@@ -436,4 +436,21 @@ Route::middleware(['auth', 'verified', 'role:client'])->prefix('client')->group(
     Route::get('/purchase-requests/paymongo/remaining/start', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'paymongoStartRemaining'])->name('client.purchase-requests.paymongo.remaining.start');
     Route::get('/purchase-requests/paymongo/remaining/success', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'paymongoRemainingSuccess'])->name('client.purchase-requests.paymongo.remaining.success');
     Route::get('/purchase-requests/paymongo/remaining/cancel', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'paymongoRemainingCancel'])->name('client.purchase-requests.paymongo.remaining.cancel');
+
+    // Client Quotation: show latest PR with price
+    Route::get('/purchase-requests/quotation', function () {
+        $order = \App\Models\Order::where('user_id', \Illuminate\Support\Facades\Auth::id())
+            ->where('order_number', 'like', 'PR-%')
+            ->where(function ($q) {
+                $q->where('status', 'approved')->orWhere('total', '>', 0);
+            })
+            ->latest()
+            ->first();
+
+        if (!$order) {
+            return redirect()->route('client.purchase-requests.select-category')->with('error', 'No quotation available yet.');
+        }
+
+        return view('client.orders.show', compact('order'));
+    })->name('client.purchase-requests.quotation');
 });

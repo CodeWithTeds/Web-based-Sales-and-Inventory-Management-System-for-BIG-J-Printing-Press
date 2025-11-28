@@ -40,7 +40,7 @@ $pageTitle = 'Quick Purchase Request';
             @if (empty($hasPending) || !$hasPending)
                 <div class="mt-2 rounded-xl border border-zinc-100 bg-white p-8 shadow-sm">
                     <h2 class="text-sm md:text-base font-semibold mb-6 text-zinc-900">Select Options</h2>
-                    <form method="POST" action="{{ route('client.purchase-requests.store') }}" id="dynamicPrForm" class="space-y-6">
+                    <form method="POST" action="{{ route('client.purchase-requests.store') }}" id="dynamicPrForm" class="space-y-6" enctype="multipart/form-data">
                         @csrf
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <!-- 1. Product Category -->
@@ -130,6 +130,15 @@ $pageTitle = 'Quick Purchase Request';
                             <label class="block text-xs md:text-sm font-medium text-zinc-700">Purpose / Note<span class="text-red-500"> *</span></label>
                             <textarea name="purpose" id="prPurpose" rows="4" class="mt-2 block w-full rounded-xl border border-zinc-300 bg-white text-sm text-zinc-800 shadow-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition" placeholder="Describe why these items are needed" required>{{ old('purpose') }}</textarea>
                             @error('purpose')
+                                <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Quotation (optional attachment) -->
+                        <div>
+                            <label class="block text-xs md:text-sm font-medium text-zinc-700">Quotation (optional)</label>
+                            <input type="file" name="attachment" accept="application/pdf,image/*" class="mt-2 block w-full rounded-xl border border-zinc-300 bg-white text-sm text-zinc-800 shadow-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition" />
+                            @error('attachment')
                                 <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
                             @enderror
                         </div>

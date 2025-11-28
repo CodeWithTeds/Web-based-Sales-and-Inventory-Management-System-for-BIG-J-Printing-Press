@@ -35,6 +35,15 @@
                     </div>
                 </div>
 
+                @if(!empty($order->attachment_path))
+                <div class="mt-6">
+                    <h3 class="text-sm font-semibold text-gray-700">Quotation</h3>
+                    <a href="{{ Storage::url($order->attachment_path) }}" target="_blank" class="inline-flex items-center mt-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
+                        View Attachment
+                    </a>
+                </div>
+                @endif
+
                 @if($order->payments->isNotEmpty())
                 <div class="mt-6">
                     <h3 class="text-sm font-semibold text-gray-700">Payments</h3>

@@ -76,6 +76,7 @@ class PurchaseRequestController extends Controller
         $data = $request->validate([
             'purpose' => ['required', 'string'],
             'items' => ['required'], // accept JSON string
+            'attachment' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
         ]);
 
         // Decode items payload if JSON
@@ -119,6 +120,15 @@ class PurchaseRequestController extends Controller
 
         // Build order data; mark as pending and skip stock handling
         $user = Auth::user();
+        // Optional quotation attachment upload
+        $attachmentPath = null;
+        if ($request->hasFile('attachment')) {
+            try {
+                $attachmentPath = $request->file('attachment')->store('order-attachments', 'public');
+            } catch (\Throwable $e) {
+                return back()->withErrors(['attachment' => 'Failed to upload attachment: ' . $e->getMessage()])->withInput();
+            }
+        }
         $orderData = [
             'order_number' => 'PR-' . now()->format('YmdHis') . '-' . random_int(100, 999),
             'customer_name' => $user?->name ? ('PR by ' . $user->name) : 'Purchase Request',
@@ -129,7 +139,7 @@ class PurchaseRequestController extends Controller
             'delivery_status' => 'pending',
             'user_id' => Auth::id(),
             'user_address_id' => null,
-            'attachment_path' => null,
+            'attachment_path' => $attachmentPath,
             'purpose' => (string) ($data['purpose'] ?? ''),
         ];
 

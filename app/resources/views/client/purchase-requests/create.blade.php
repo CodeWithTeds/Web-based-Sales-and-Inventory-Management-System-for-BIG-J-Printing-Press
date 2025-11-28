@@ -26,13 +26,20 @@
 
         <div class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <div class="mb-3 text-sm text-slate-600">Category: <span class="font-medium">{{ $category->name }}</span></div>
-            <form method="POST" action="{{ route('client.purchase-requests.store') }}" class="space-y-6" id="prForm">
+            <form method="POST" action="{{ route('client.purchase-requests.store') }}" class="space-y-6" id="prForm" enctype="multipart/form-data">
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="md:col-span-3">
                         <label class="block text-xs font-medium text-slate-700">Purpose / Note</label>
                         <textarea name="purpose" rows="2" class="mt-1 block w-full rounded-md border-slate-300 text-sm" placeholder="Describe why these items are needed" required>{{ old('purpose') }}</textarea>
                         @error('purpose')
+                            <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div class="md:col-span-3">
+                        <label class="block text-xs font-medium text-slate-700">Quotation (optional)</label>
+                        <input type="file" name="attachment" accept="application/pdf,image/*" class="mt-1 block w-full rounded-md border-slate-300 text-sm" />
+                        @error('attachment')
                             <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
                         @enderror
                     </div>
