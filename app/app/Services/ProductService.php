@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Repositories\ProductRepositoryInterface;
 use App\Repositories\MaterialRepositoryInterface;
 use App\Repositories\CategoryRepositoryInterface;
+use App\Models\InventoryTransaction;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -92,6 +94,7 @@ class ProductService
     public function update(string|int $id, array $data, ?UploadedFile $image = null, ?array $sizeIds = null)
     {
         $item = $this->products->find($id);
+        $oldQuantity = (int) ($item->quantity ?? 0);
 
         if ($image && $image->isValid()) {
             if ($item && $item->image_path) {
@@ -112,7 +115,24 @@ class ProductService
             $this->products->syncSizes($id, array_map('intval', $sizeIds));
         }
 
-        return $this->products->find($id)->load('materials', 'sizes');
+        // After update, log inventory transaction if quantity changed
+        $updated = $this->products->find($id);
+        $newQuantity = (int) ($updated->quantity ?? $oldQuantity);
+        $delta = $newQuantity - $oldQuantity;
+        if ($delta !== 0) {
+            InventoryTransaction::create([
+                'subject_type' => 'product',
+                'subject_id'   => (int) $updated->id,
+                'type'         => $delta > 0 ? 'in' : 'out',
+                'quantity'     => abs((float) $delta),
+                'unit'         => $updated->unit ?? null,
+                'name'         => $updated->name ?? null,
+                'notes'        => 'Stock adjusted from ' . $oldQuantity . ' to ' . $newQuantity,
+                'created_by'   => Auth::id(),
+            ]);
+        }
+
+        return $updated->load('materials', 'sizes');
     }
 
     public function destroy(string|int $id): void

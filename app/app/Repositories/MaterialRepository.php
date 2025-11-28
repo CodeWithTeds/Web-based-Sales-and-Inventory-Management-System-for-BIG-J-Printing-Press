@@ -3,6 +3,8 @@
 namespace App\Repositories;
 
 use App\Models\Material;
+use App\Models\InventoryTransaction;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class MaterialRepository extends BaseRepository implements MaterialRepositoryInterface
@@ -47,8 +49,17 @@ class MaterialRepository extends BaseRepository implements MaterialRepositoryInt
             $material->quantity += $quantity;
             $material->save();
             
-            // You could also log this transaction in a separate stock_transactions table
-            // if you want to keep a history of all stock movements
+            // Log inventory transaction for reporting
+            InventoryTransaction::create([
+                'subject_type' => 'material',
+                'subject_id'   => $material->id,
+                'type'         => 'in',
+                'quantity'     => $quantity,
+                'unit'         => $material->unit ?? null,
+                'name'         => $material->name ?? null,
+                'notes'        => $notes,
+                'created_by'   => Auth::id(),
+            ]);
             
             DB::commit();
             return $material;
@@ -105,8 +116,72 @@ class MaterialRepository extends BaseRepository implements MaterialRepositoryInt
                 ]
             ]));
         }
-        $material->quantity = (float) $material->quantity - $quantity;
-        $material->save();
+        DB::beginTransaction();
+        try {
+            $material->quantity = (float) $material->quantity - $quantity;
+            $material->save();
+
+            // Log inventory transaction for reporting
+            InventoryTransaction::create([
+                'subject_type' => 'material',
+                'subject_id'   => $material->id,
+                'type'         => 'out',
+                'quantity'     => $quantity,
+                'unit'         => $material->unit ?? null,
+                'name'         => $material->name ?? null,
+                'notes'        => null,
+                'created_by'   => Auth::id(),
+            ]);
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
         return $material;
+    }
+
+    /**
+     * Override update to log inventory transactions when quantity changes via edit form.
+     *
+     * @param \Illuminate\Database\Eloquent\Model|array $data
+     * @param array|int $id
+     * @return mixed
+     */
+    public function update($data, $id)
+    {
+        // Resolve record and update payload
+        if ($data instanceof Material) {
+            $record = $data;
+            $updateData = $id;
+        } else {
+            $record = $this->find($id);
+            $updateData = $data;
+        }
+
+        $oldQuantity = (float) ($record->quantity ?? 0);
+        $newQuantity = array_key_exists('quantity', (array) $updateData)
+            ? (float) $updateData['quantity']
+            : $oldQuantity;
+
+        // Perform the update
+        $result = parent::update($data, $id);
+
+        // Log an inventory transaction only when quantity actually changes
+        $delta = $newQuantity - $oldQuantity;
+        if ($delta !== 0) {
+            InventoryTransaction::create([
+                'subject_type' => 'material',
+                'subject_id'   => (int) $record->id,
+                'type'         => $delta > 0 ? 'in' : 'out',
+                'quantity'     => abs((float) $delta),
+                'unit'         => $record->unit ?? null,
+                'name'         => $record->name ?? null,
+                'notes'        => 'Stock adjusted from ' . $oldQuantity . ' to ' . $newQuantity,
+                'created_by'   => Auth::id(),
+            ]);
+        }
+
+        return $result;
     }
 }

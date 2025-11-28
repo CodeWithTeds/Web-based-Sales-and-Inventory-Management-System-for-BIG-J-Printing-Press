@@ -5,6 +5,8 @@ namespace App\Repositories;
 use App\Models\Material;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\InventoryTransaction;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class CheckoutRepository
@@ -68,6 +70,18 @@ class CheckoutRepository
                     $material = Material::findOrFail($materialId);
                     $material->quantity -= $requiredQty;
                     $material->save();
+
+                    // Log inventory transaction for material usage
+                    InventoryTransaction::create([
+                        'subject_type' => 'material',
+                        'subject_id'   => (int) $material->id,
+                        'type'         => 'out',
+                        'quantity'     => (float) $requiredQty,
+                        'unit'         => $material->unit ?? null,
+                        'name'         => $material->name ?? null,
+                        'notes'        => 'Used in POS order ' . ($order->order_number ?? ''),
+                        'created_by'   => Auth::id(),
+                    ]);
                 }
             }
 
@@ -131,11 +145,22 @@ class CheckoutRepository
                 $orders[] = $order;
             }
 
-            // Deduct aggregated materials
+            // Deduct aggregated materials and log usage
             foreach ($materialRequirements as $materialId => $requiredQty) {
                 $material = Material::findOrFail($materialId);
                 $material->quantity -= $requiredQty;
                 $material->save();
+
+                InventoryTransaction::create([
+                    'subject_type' => 'material',
+                    'subject_id'   => (int) $material->id,
+                    'type'         => 'out',
+                    'quantity'     => (float) $requiredQty,
+                    'unit'         => $material->unit ?? null,
+                    'name'         => $material->name ?? null,
+                    'notes'        => 'Used in batch PO ' . $poNumber,
+                    'created_by'   => Auth::id(),
+                ]);
             }
 
             return $orders;

@@ -301,6 +301,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 
     // Sales Projection
     Route::get('/sales-projection', [SalesProjectionController::class, 'index'])->name('admin.sales-projection.index');
+
+    // Inventory Report: Product In / Product Out
+    Route::get('/reports/inventory', [\App\Http\Controllers\Admin\InventoryReportController::class, 'index'])
+        ->name('admin.reports.inventory');
 });
 
 // Staff routes
