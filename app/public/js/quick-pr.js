@@ -13,6 +13,8 @@
     catSel: null,
     prodSel: null,
     sizeSel: null,
+    sizeContainer: null,
+    multiSizeChk: null,
     paperSel: null,
     qtyInp: null,
     unitInp: null,
@@ -94,6 +96,26 @@
       this.populateSelect(els.prodSel, products, (p) => p.id, (p) => p.name, 'Select a product...');
     },
     renderSizes(sizes) {
+      // Prefer rendering as checkboxes in a container; fallback to select if container missing
+      if (els.sizeContainer) {
+        if (!Array.isArray(sizes) || sizes.length === 0) {
+          els.sizeContainer.innerHTML = '<div class="text-xs text-zinc-500">No sizes available for this product.</div>';
+          return;
+        }
+        const cards = sizes.map((s) => {
+          const id = s.id;
+          const label = s.name || `${s.width ?? ''}×${s.height ?? ''}`;
+          return `
+            <label class="flex items-center gap-2 rounded border border-zinc-200 p-2">
+              <input type="checkbox" class="rounded" data-size-id="${id}">
+              <span class="text-sm text-zinc-800">${label}</span>
+            </label>
+          `;
+        }).join('');
+        els.sizeContainer.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">${cards}</div>`;
+        return;
+      }
+      // Fallback to select
       this.populateSelect(
         els.sizeSel,
         sizes,
@@ -105,6 +127,9 @@
     resetProductAndSize() {
       this.setDisabled(els.prodSel, true, 'Select a product...');
       this.setDisabled(els.sizeSel, true, 'Select a size...');
+      if (els.sizeContainer) {
+        els.sizeContainer.innerHTML = '<div class="text-xs text-zinc-500">Select a product to load sizes.</div>';
+      }
       if (els.unitInp) els.unitInp.value = '';
     },
     togglePlySection(show) {
@@ -199,7 +224,14 @@
       return base + extra;
     },
     buildItemsPayload(items) {
-      const payload = items.map((it) => ({ type: 'products', id: parseInt(it.id, 10), qty: parseInt(it.qty, 10) }));
+      const payload = items.map((it) => ({
+        type: 'products',
+        id: parseInt(it.id, 10),
+        qty: parseInt(it.qty, 10),
+        ...(Array.isArray(it.size_ids) && it.size_ids.length
+          ? { size_ids: it.size_ids.map((s) => parseInt(s, 10)).filter((n) => Number.isInteger(n) && n > 0) }
+          : {})
+      }));
       return JSON.stringify(payload);
     },
     clearSelections() {
@@ -266,22 +298,29 @@
     utils.clearSelections();
   }
 
+  function onMultiSizeChange() {
+    if (!els.sizeSel) return;
+    els.sizeSel.multiple = !!(els.multiSizeChk && els.multiSizeChk.checked);
+  }
+
   function onAddItemClick(e) {
     e.preventDefault();
     const cat = els.catSel.value;
     const pid = els.prodSel.value;
-    const sizeId = els.sizeSel.value;
+    const sizeChecks = Array.from(els.sizeContainer?.querySelectorAll('input[type="checkbox"][data-size-id]') || []);
+    const checked = sizeChecks.filter((cb) => cb.checked);
+    const sizeIds = checked.map((cb) => cb.getAttribute('data-size-id'));
     const paper = els.paperSel.value;
     const qty = parseInt(els.qtyInp.value || '0', 10);
-    if (!cat || !pid || !sizeId || qty < 1) {
-      alert('Please select category, product, size, and a valid quantity.');
+    if (!cat || !pid || sizeIds.length === 0 || qty < 1) {
+      alert('Please select category, product, at least one size, and a valid quantity.');
       return;
     }
     const prodOpt = els.prodSel?.selectedOptions?.[0];
     const prodName = prodOpt?.dataset?.name || prodOpt?.textContent || '';
     const unit = prodOpt?.dataset?.unit || '';
     // build item
-    const item = { type: 'products', id: pid, qty: qty, name: prodName, unit: unit };
+    const item = { type: 'products', id: pid, qty: qty, name: prodName, unit: unit, size_ids: sizeIds };
     state.items.push(item);
     view.renderItems(state.items);
     // optional purpose note enrichment per add
@@ -294,8 +333,8 @@
         colors.push(sel?.value || '');
       }
     }
-    const sizeText = els.sizeSel?.selectedOptions?.[0]?.textContent || sizeId;
-    const note = `• ${prodName} — Size: ${sizeText}; Paper: ${paper || 'n/a'}; Qty: ${qty} ${unit || ''}${ply >= 2 ? `; Ply: ${ply}; Colors: ${colors.join(', ')}` : ''}`;
+    const sizeText = checked.map((cb) => cb.nextElementSibling?.textContent || cb.getAttribute('data-size-id')).join(', ');
+    const note = `• ${prodName} — Sizes: ${sizeText}; Paper: ${paper || 'n/a'}; Qty: ${qty} ${unit || ''}${ply >= 2 ? `; Ply: ${ply}; Colors: ${colors.join(', ')}` : ''}`;
     if (!els.purpose.value) {
       els.purpose.value = note;
     } else {
@@ -304,6 +343,9 @@
     // reset product-specific selectors for next add
     view.setDisabled(els.prodSel, true, 'Select a product...');
     view.setDisabled(els.sizeSel, true, 'Select a size...');
+    if (els.sizeContainer) {
+      els.sizeContainer.innerHTML = '<div class="text-xs text-zinc-500">Select a product to load sizes.</div>';
+    }
     els.qtyInp.value = '1';
     els.paperSel.value = '';
     if (els.unitInp) els.unitInp.value = '';
@@ -326,6 +368,8 @@
     els.catSel = document.getElementById('prCategory');
     els.prodSel = document.getElementById('prProduct');
     els.sizeSel = document.getElementById('prSize');
+    els.sizeContainer = document.getElementById('prSizesContainer');
+    els.multiSizeChk = document.getElementById('prMultiSize');
     els.paperSel = document.getElementById('prPaperType');
     els.qtyInp = document.getElementById('prQty');
     els.unitInp = document.getElementById('prUnit');
@@ -358,8 +402,10 @@
     els.prodSel?.addEventListener('change', onProductChange);
     els.plySel?.addEventListener('change', onPlyChange);
     els.resetBtn?.addEventListener('click', onResetClick);
+    els.multiSizeChk?.addEventListener('change', onMultiSizeChange);
     els.addBtn?.addEventListener('click', onAddItemClick);
     els.form?.addEventListener('submit', onFormSubmit);
+    onMultiSizeChange();
 
     // Delegate remove in items list
     els.itemsList?.addEventListener('click', (ev) => {

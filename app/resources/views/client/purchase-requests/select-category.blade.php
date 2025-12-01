@@ -65,12 +65,12 @@ $pageTitle = 'Quick Purchase Request';
                                 </select>
                             </div>
 
-                            <!-- 3. Size -->
+                            <!-- 3. Sizes (checkbox per size) -->
                             <div>
-                                <label class="block text-xs md:text-sm font-medium text-zinc-700">Size<span class="text-red-500"> *</span></label>
-                                <select id="prSize" class="mt-2 block w-full rounded-xl border border-zinc-300 bg-white text-sm text-zinc-800 shadow-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition disabled:opacity-50" required disabled>
-                                    <option value="">Select a size...</option>
-                                </select>
+                                <label class="block text-xs md:text-sm font-medium text-zinc-700">Sizes<span class="text-red-500"> *</span></label>
+                                <div id="prSizesContainer" class="mt-2 space-y-2">
+                                    <div class="text-xs text-zinc-500">Select a product to load sizes.</div>
+                                </div>
                             </div>
 
                             <!-- 4. Paper Type -->
