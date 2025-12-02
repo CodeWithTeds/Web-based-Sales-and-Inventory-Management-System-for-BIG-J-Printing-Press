@@ -33,11 +33,6 @@
                     <flux:navlist.item icon="clipboard-document-list" :href="route('admin.activity-logs.index')" :current="request()->routeIs('admin.activity-logs.*')" wire:navigate>{{ __('Activity Logs') }}</flux:navlist.item>
                     <flux:navlist.item icon="currency-dollar" :href="route('admin.outstanding-balances.index')" :current="request()->routeIs('admin.outstanding-balances.*')" wire:navigate>{{ __('Outstanding Balances') }}</flux:navlist.item>
                     <flux:navlist.item icon="chart-bar" :href="route('admin.sales-projection.index')" :current="request()->routeIs('admin.sales-projection.*')" wire:navigate>{{ __('Sales Projection') }}</flux:navlist.item>
-                    <flux:navlist.item icon="document-text" :href="route('admin.reports.inventory')" :current="request()->routeIs('admin.reports.inventory')" wire:navigate>{{ __('Inventory Report') }}</flux:navlist.item>
-                    <!-- Physical Inventory nav item -->
-                    <flux:navlist.item icon="clipboard-document-check" :href="route('admin.physical-inventory.index')" :current="request()->routeIs('admin.physical-inventory.*')" wire:navigate>{{ __('Physical Inventory') }}</flux:navlist.item>
-                    <!-- Materials Physical Inventory nav item -->
-                    <flux:navlist.item icon="clipboard-document-check" :href="route('admin.materials-physical-inventory.index')" :current="request()->routeIs('admin.materials-physical-inventory.*')" wire:navigate>{{ __('Materials Inventory') }}</flux:navlist.item>
                     @endif
 
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isStaff()))
@@ -46,9 +41,11 @@
                     <flux:navlist.item icon="clipboard-document-list" :href="route('admin.purchase-requests.index')" :current="request()->routeIs('admin.purchase-requests.*')" wire:navigate>{{ __('Purchase Requests') }}</flux:navlist.item>
                     <flux:navlist.item icon="shopping-bag" :href="route('admin.purchase-orders.create')" :current="request()->routeIs('admin.purchase-orders.*')" wire:navigate>{{ __('Walk-in PO') }}</flux:navlist.item>
                     @endif
-                    @if(auth()->user()->isStaff())
-                    <flux:navlist.item icon="clipboard-document-list" :href="route('staff.purchase-requests.select-category')" :current="request()->routeIs('staff.purchase-requests.*')" wire:navigate>{{ __('Purchase Request') }}</flux:navlist.item>
-                    @endif
+                    {{-- Removed staff Purchase Request link from sidebar as requested --}}
+                    <!-- Shared: Physical Count and Inventory Reports for Admin and Staff -->
+                    <flux:navlist.item icon="document-text" :href="route('admin.reports.inventory')" :current="request()->routeIs('admin.reports.inventory')" wire:navigate>{{ __('Inventory Report') }}</flux:navlist.item>
+                    <flux:navlist.item icon="clipboard-document-check" :href="route('admin.physical-inventory.index')" :current="request()->routeIs('admin.physical-inventory.*')" wire:navigate>{{ __('Physical Inventory') }}</flux:navlist.item>
+                    <flux:navlist.item icon="clipboard-document-check" :href="route('admin.materials-physical-inventory.index')" :current="request()->routeIs('admin.materials-physical-inventory.*')" wire:navigate>{{ __('Materials Inventory') }}</flux:navlist.item>
                     @endif
                 </flux:navlist.group>
 

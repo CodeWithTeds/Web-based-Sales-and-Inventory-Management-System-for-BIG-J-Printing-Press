@@ -291,16 +291,21 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // Activity Logs (admin can view all)
     Route::get('/activity-logs', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('admin.activity-logs.index');
 
-    // Physical Inventory
+    // Sales Projection
+    Route::get('/sales-projection', [SalesProjectionController::class, 'index'])->name('admin.sales-projection.index');
+    
+    // (moved below) Physical & Materials Physical Inventory and Inventory Report now accessible to staff
+});
+
+// Shared admin/staff access: Physical Inventory & Inventory Report (keep admin URL/route names)
+Route::middleware(['auth', 'verified', 'role:admin,staff'])->prefix('admin')->group(function () {
+    // Physical Inventory (Products)
     Route::get('/physical-inventory', [PhysicalInventoryController::class, 'index'])->name('admin.physical-inventory.index');
     Route::post('/physical-inventory/{product}', [PhysicalInventoryController::class, 'update'])->name('admin.physical-inventory.update');
 
     // Materials Physical Inventory
     Route::get('/materials-physical-inventory', [\App\Http\Controllers\Admin\MaterialPhysicalInventoryController::class, 'index'])->name('admin.materials-physical-inventory.index');
     Route::post('/materials-physical-inventory/{material}', [\App\Http\Controllers\Admin\MaterialPhysicalInventoryController::class, 'update'])->name('admin.materials-physical-inventory.update');
-
-    // Sales Projection
-    Route::get('/sales-projection', [SalesProjectionController::class, 'index'])->name('admin.sales-projection.index');
 
     // Inventory Report: Product In / Product Out
     Route::get('/reports/inventory', [\App\Http\Controllers\Admin\InventoryReportController::class, 'index'])
