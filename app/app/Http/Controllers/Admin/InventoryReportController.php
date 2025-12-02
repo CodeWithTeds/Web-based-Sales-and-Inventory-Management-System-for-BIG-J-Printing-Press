@@ -23,21 +23,29 @@ class InventoryReportController extends Controller
         $outQuery = InventoryTransaction::query()
             ->where('type', 'in')
             ->where('subject_type', 'material');
+
+        // Material stock-out (only subject_type = 'material')
+        $materialOutQuery = InventoryTransaction::query()
+            ->where('type', 'out')
+            ->where('subject_type', 'material');
         $productOutQuery = OrderItem::query();
 
         if ($from) {
             $inQuery->where('created_at', '>=', $from);
             $outQuery->where('created_at', '>=', $from);
+            $materialOutQuery->where('created_at', '>=', $from);
             $productOutQuery->where('created_at', '>=', $from);
         }
         if ($to) {
             $inQuery->where('created_at', '<=', $to);
             $outQuery->where('created_at', '<=', $to);
+            $materialOutQuery->where('created_at', '<=', $to);
             $productOutQuery->where('created_at', '<=', $to);
         }
 
         $stockIn = $inQuery->orderByDesc('created_at')->limit(100)->get();
         $stockOut = $outQuery->orderByDesc('created_at')->limit(100)->get();
+        $materialsOut = $materialOutQuery->orderByDesc('created_at')->limit(100)->get();
         $productOut = $productOutQuery->with(['order', 'product'])->orderByDesc('created_at')->limit(100)->get();
 
         if ($request->wantsJson()) {
@@ -47,10 +55,11 @@ class InventoryReportController extends Controller
                     'product_out' => $productOut,
                     'stock_in' => $stockIn,
                     'stock_out' => $stockOut,
+                    'materials_out' => $materialsOut,
                 ],
             ]);
         }
 
-        return view('admin.reports.inventory', compact('productOut', 'stockIn', 'stockOut'));
+        return view('admin.reports.inventory', compact('productOut', 'stockIn', 'stockOut', 'materialsOut'));
     }
 }

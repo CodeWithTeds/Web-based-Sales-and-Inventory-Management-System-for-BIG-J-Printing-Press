@@ -207,6 +207,20 @@ class OrdersController extends Controller
                     $material->quantity = max($current - $allocate, 0);
                     $material->save();
 
+                    // Log inventory transaction for Materials Out / Used
+                    if ($allocate > 0) {
+                        \App\Models\InventoryTransaction::create([
+                            'subject_type' => 'material',
+                            'subject_id'   => (int) $material->id,
+                            'type'         => 'out',
+                            'quantity'     => (float) $allocate,
+                            'unit'         => $material->unit ?? null,
+                            'name'         => $material->name ?? null,
+                            'notes'        => 'Used in order ' . ($order->order_number ?? ''),
+                            'created_by'   => \Illuminate\Support\Facades\Auth::id(),
+                        ]);
+                    }
+
                     $required = (float) ($requirements[$materialId] ?? $requested);
                     $shortfall = max($required - $allocate, 0);
                     if ($shortfall > 0) {

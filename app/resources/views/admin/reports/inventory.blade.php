@@ -27,7 +27,7 @@
     </div>
 
     <!-- Quick Stats -->
-    <div class="grid grid-cols-1 gap-4 md:grid-cols-3 mb-6">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-4 mb-6">
         <div class="rounded-2xl bg-white p-4 shadow-lg border border-gray-100 dark:border-neutral-700 dark:bg-zinc-900">
             <p class="text-xs text-gray-600 dark:text-neutral-400">{{ __('Stock In Transactions') }}</p>
             <p class="text-2xl font-semibold text-[#D62F1A]">{{ ($stockIn ?? collect())->count() }}</p>
@@ -37,8 +37,12 @@
             <p class="text-2xl font-semibold text-[#D62F1A]">{{ ($productOut ?? collect())->count() }}</p>
         </div>
         <div class="rounded-2xl bg-white p-4 shadow-lg border border-gray-100 dark:border-neutral-700 dark:bg-zinc-900">
-            <p class="text-xs text-gray-600 dark:text-neutral-400">{{ __('Material In Transactions') }}</p>
+            <p class="text-xs text-gray-600 dark:text-neutral-400">{{ __('Materials In Transactions') }}</p>
             <p class="text-2xl font-semibold text-[#D62F1A]">{{ ($stockOut ?? collect())->count() }}</p>
+        </div>
+        <div class="rounded-2xl bg-white p-4 shadow-lg border border-gray-100 dark:border-neutral-700 dark:bg-zinc-900">
+            <p class="text-xs text-gray-600 dark:text-neutral-400">{{ __('Materials Out / Used (Work)') }}</p>
+            <p class="text-2xl font-semibold text-[#D62F1A]">{{ ($materialsOut ?? collect())->count() }}</p>
         </div>
     </div>
 
@@ -116,7 +120,7 @@
         </div>
 
         <!-- Material In -->
-        <div class="rounded-2xl bg-white p-6 shadow-lg border border-gray-100 dark:border-neutral-700 dark:bg-zinc-900 xl:col-span-2">
+        <div class="rounded-2xl bg-white p-6 shadow-lg border border-gray-100 dark:border-neutral-700 dark:bg-zinc-900">
             <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-neutral-200">{{ __('Material In (stock-in)') }}</h3>
             <div class="overflow-x-auto">
                 <table class="min-w-full text-xs">
@@ -141,6 +145,39 @@
                         @empty
                             <tr>
                                 <td colspan="5" class="px-2 py-2 text-center text-gray-500">{{ __('No recent stock-in transactions.') }}</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Materials Out / Used (Work) -->
+        <div class="rounded-2xl bg-white p-6 shadow-lg border border-gray-100 dark:border-neutral-700 dark:bg-zinc-900">
+            <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-neutral-200">{{ __('Materials Out / Used (Work)') }}</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-xs">
+                    <thead>
+                        <tr class="text-left text-gray-500 dark:text-neutral-400">
+                            <th class="px-2 py-1">{{ __('Date') }}</th>
+                            <th class="px-2 py-1">{{ __('Material') }}</th>
+                            <th class="px-2 py-1 text-right">{{ __('Qty') }}</th>
+                            <th class="px-2 py-1">{{ __('Unit') }}</th>
+                            <th class="px-2 py-1">{{ __('Notes') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
+                        @forelse($materialsOut as $txn)
+                            <tr class="text-gray-800 dark:text-neutral-200">
+                                <td class="px-2 py-1">{{ optional($txn->created_at)->format('Y-m-d H:i') }}</td>
+                                <td class="px-2 py-1">{{ $txn->name ?? 'Material #' . $txn->subject_id }}</td>
+                                <td class="px-2 py-1 text-right">{{ number_format($txn->quantity, 2) }}</td>
+                                <td class="px-2 py-1">{{ $txn->unit }}</td>
+                                <td class="px-2 py-1 truncate max-w-[240px]">{{ $txn->notes }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="px-2 py-2 text-center text-gray-500">{{ __('No recent stock-out transactions.') }}</td>
                             </tr>
                         @endforelse
                     </tbody>
