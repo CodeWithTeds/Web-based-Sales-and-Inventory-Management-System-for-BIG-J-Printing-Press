@@ -417,8 +417,9 @@ Route::middleware(['auth', 'verified', 'role:client'])->prefix('client')->group(
     })->name('client.orders.show');
 
     // Client Purchase Requests
-    Route::get('/purchase-requests', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'selectCategory'])->name('client.purchase-requests.select-category');
-    Route::get('/purchase-requests/payment', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'payment'])->name('client.purchase-requests.payment');
+Route::get('/purchase-requests', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'selectCategory'])->name('client.purchase-requests.select-category');
+Route::get('/purchase-requests/history', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'history'])->name('client.purchase-requests.history');
+Route::get('/purchase-requests/payment', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'payment'])->name('client.purchase-requests.payment');
     Route::get('/purchase-requests/create/{category}', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'createByCategory'])->name('client.purchase-requests.create');
     Route::post('/purchase-requests', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'store'])->name('client.purchase-requests.store');
 

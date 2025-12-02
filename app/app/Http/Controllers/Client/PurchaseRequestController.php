@@ -356,6 +356,22 @@ class PurchaseRequestController extends Controller
             'payments' => $payments,
         ]);
     }
+
+    /**
+     * Show PR History list for the authenticated client.
+     */
+    public function history(Request $request)
+    {
+        $orders = \App\Models\Order::where('user_id', Auth::id())
+            ->where('order_number', 'like', 'PR-%')
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('client.purchase-requests.history', [
+            'orders' => $orders,
+        ]);
+    }
     /**
      * Start PayMongo checkout for remaining balance of the latest approved PR.
      */

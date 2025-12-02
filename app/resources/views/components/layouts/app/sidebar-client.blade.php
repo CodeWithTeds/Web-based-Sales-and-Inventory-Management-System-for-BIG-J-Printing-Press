@@ -19,6 +19,7 @@
                     <flux:navlist.item icon="banknotes" :href="route('client.ordering')" :current="request()->routeIs('client.ordering*')" wire:navigate>{{ __('Online Ordering') }}</flux:navlist.item>
                     <flux:navlist.item icon="clipboard-document-list" :href="route('client.purchase-requests.select-category')" :current="request()->routeIs('client.purchase-requests.select-category') || request()->routeIs('client.purchase-requests.create')" wire:navigate>{{ __('Purchase Request') }}</flux:navlist.item>
                     <flux:navlist.item icon="credit-card" :href="route('client.purchase-requests.payment')" :current="request()->routeIs('client.purchase-requests.payment') || request()->routeIs('client.purchase-requests.paymongo.*')" wire:navigate>{{ __('PR Payment') }}</flux:navlist.item>
+                    <flux:navlist.item icon="archive-box" :href="route('client.purchase-requests.history')" :current="request()->routeIs('client.purchase-requests.history')" wire:navigate>{{ __('PR History') }}</flux:navlist.item>
                     @php
                         $hasQuotation = \App\Models\Order::where('user_id', \Illuminate\Support\Facades\Auth::id())
                             ->where('order_number', 'like', 'PR-%')

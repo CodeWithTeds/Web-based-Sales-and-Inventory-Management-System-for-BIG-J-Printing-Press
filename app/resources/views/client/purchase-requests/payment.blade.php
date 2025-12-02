@@ -15,6 +15,9 @@
             <div class="p-6 md:p-8">
                 <h1 class="text-base md:text-lg font-semibold text-zinc-900">{{ $pageTitle }}</h1>
                 <p class="mt-2 text-xs md:text-sm text-zinc-700">View your Purchase Request payments and pay the required downpayment.</p>
+                <div class="mt-3">
+                    <a href="{{ route('client.purchase-requests.history') }}" class="inline-flex items-center rounded-lg bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-200">View PR History</a>
+                </div>
             </div>
         </div>
 
