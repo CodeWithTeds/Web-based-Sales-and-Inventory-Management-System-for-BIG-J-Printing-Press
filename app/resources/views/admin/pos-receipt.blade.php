@@ -75,9 +75,12 @@
             <div>₱{{ number_format($order->total, 2) }}</div>
         </div>
         @php
-            // Compute remaining using Payments excluding POS downpayment records
+            // Compute remaining using Payments excluding downpayment records (POSDP- and PRDP-)
             $paidSum = ($order->payments ?? collect())
-                ->filter(function($p){ return empty($p->reference) || !str_starts_with($p->reference, 'POSDP-'); })
+                ->filter(function($p){
+                    $ref = (string)($p->reference ?? '');
+                    return $ref === '' || (!str_starts_with($ref, 'POSDP-') && !str_starts_with($ref, 'PRDP-'));
+                })
                 ->sum('amount');
             $down = (float) ($order->downpayment ?? 0);
             $remaining = max(($order->total ?? 0) - $down - (float) $paidSum, 0);

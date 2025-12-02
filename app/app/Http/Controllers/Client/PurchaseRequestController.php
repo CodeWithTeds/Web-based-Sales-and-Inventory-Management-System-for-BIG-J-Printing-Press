@@ -254,6 +254,7 @@ class PurchaseRequestController extends Controller
             session()->put('paymongo.checkout_session_id', $csId);
             session()->put('paymongo.order_id', $order->id);
             session()->put('paymongo.downpayment_amount', $requiredDown);
+            session()->put('paymongo.dp.reference_number', $reference);
 
             if ($request->header('HX-Request')) {
                 return response('', 204)->header('HX-Redirect', $checkoutUrl);
@@ -306,6 +307,7 @@ class PurchaseRequestController extends Controller
         session()->forget('paymongo.checkout_session_id');
         session()->forget('paymongo.order_id');
         session()->forget('paymongo.downpayment_amount');
+        session()->forget('paymongo.dp.reference_number');
 
         $order = Order::find($orderId);
         if (!$order) {
@@ -319,7 +321,9 @@ class PurchaseRequestController extends Controller
             'method' => 'gcash',
             'amount' => $amount,
             'currency' => 'PHP',
-            'reference' => $csId,
+            // Use our DP reference prefix to allow exclusion from "paid sum"
+            'reference' => session()->get('paymongo.dp.reference_number') ?? ('PRDP-' . now()->format('YmdHis')),
+            'notes' => 'cs:' . $csId,
             'paid_at' => now(),
         ]);
 
@@ -440,6 +444,7 @@ class PurchaseRequestController extends Controller
             session()->put('paymongo.remaining.checkout_session_id', $csId);
             session()->put('paymongo.remaining.order_id', $order->id);
             session()->put('paymongo.remaining_amount', $remaining);
+            session()->put('paymongo.remaining.reference_number', $reference);
 
             if ($request->header('HX-Request')) {
                 return response('', 204)->header('HX-Redirect', $checkoutUrl);
@@ -492,6 +497,7 @@ class PurchaseRequestController extends Controller
         session()->forget('paymongo.remaining.checkout_session_id');
         session()->forget('paymongo.remaining.order_id');
         session()->forget('paymongo.remaining_amount');
+        session()->forget('paymongo.remaining.reference_number');
 
         $order = Order::find($orderId);
         if (!$order) {
@@ -505,7 +511,9 @@ class PurchaseRequestController extends Controller
             'method' => 'gcash',
             'amount' => $amount,
             'currency' => 'PHP',
-            'reference' => $csId,
+            // Use our remaining balance reference prefix for consistency
+            'reference' => session()->get('paymongo.remaining.reference_number') ?? ('PRRB-' . now()->format('YmdHis')),
+            'notes' => 'cs:' . $csId,
             'paid_at' => now(),
         ]);
 

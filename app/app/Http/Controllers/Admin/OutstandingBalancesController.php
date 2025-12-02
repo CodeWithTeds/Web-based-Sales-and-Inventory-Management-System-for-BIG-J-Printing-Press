@@ -17,7 +17,7 @@ class OutstandingBalancesController extends Controller
     public function index(Request $request)
     {
         $query = Order::with(['user', 'payments'])
-            ->whereRaw('(total - IFNULL(downpayment, 0)) > (SELECT IFNULL(SUM(amount), 0) FROM payments WHERE payments.order_id = orders.id AND (payments.reference IS NULL OR payments.reference NOT LIKE "POSDP-%"))')
+            ->whereRaw('(total - IFNULL(downpayment, 0)) > (SELECT IFNULL(SUM(amount), 0) FROM payments WHERE payments.order_id = orders.id AND (payments.reference IS NULL OR (payments.reference NOT LIKE "POSDP-%" AND payments.reference NOT LIKE "PRDP-%")))')
             ->orderByDesc('created_at');
 
         // Apply search filter if provided
@@ -39,7 +39,13 @@ class OutstandingBalancesController extends Controller
         // Calculate additional data for each order with consistent formula
         foreach ($orders as $order) {
             $paidSum = (float) $order->payments()
-                ->where(function ($q) { $q->whereNull('reference')->orWhere('reference', 'not like', 'POSDP-%'); })
+                ->where(function ($q) {
+                    $q->whereNull('reference')
+                      ->orWhere(function ($q2) {
+                          $q2->where('reference', 'not like', 'POSDP-%')
+                             ->where('reference', 'not like', 'PRDP-%');
+                      });
+                })
                 ->sum('amount');
             $down = (float) ($order->downpayment ?? 0);
             $total = (float) ($order->total ?? 0);
@@ -76,7 +82,13 @@ class OutstandingBalancesController extends Controller
 
         // Prevent overpayment: compute remaining balance excluding POS downpayment Payment records
         $paidSum = (float) $order->payments()
-            ->where(function ($q) { $q->whereNull('reference')->orWhere('reference', 'not like', 'POSDP-%'); })
+            ->where(function ($q) {
+                $q->whereNull('reference')
+                  ->orWhere(function ($q2) {
+                      $q2->where('reference', 'not like', 'POSDP-%')
+                         ->where('reference', 'not like', 'PRDP-%');
+                  });
+            })
             ->sum('amount');
         $down = (float) ($order->downpayment ?? 0);
         $total = (float) ($order->total ?? 0);
@@ -119,7 +131,13 @@ class OutstandingBalancesController extends Controller
         // Prevent overpayment during update: recompute remaining excluding this payment and POS downpayment Payment records
         $order = $payment->order;
         $paidSum = (float) $order->payments()
-            ->where(function ($q) { $q->whereNull('reference')->orWhere('reference', 'not like', 'POSDP-%'); })
+            ->where(function ($q) {
+                $q->whereNull('reference')
+                  ->orWhere(function ($q2) {
+                      $q2->where('reference', 'not like', 'POSDP-%')
+                         ->where('reference', 'not like', 'PRDP-%');
+                  });
+            })
             ->where('id', '!=', $payment->id)
             ->sum('amount');
         $down = (float) ($order->downpayment ?? 0);
@@ -152,7 +170,13 @@ class OutstandingBalancesController extends Controller
     public function sendReminder(Request $request, Order $order)
     {
         $paidSum = (float) $order->payments()
-            ->where(function ($q) { $q->whereNull('reference')->orWhere('reference', 'not like', 'POSDP-%'); })
+            ->where(function ($q) {
+                $q->whereNull('reference')
+                  ->orWhere(function ($q2) {
+                      $q2->where('reference', 'not like', 'POSDP-%')
+                         ->where('reference', 'not like', 'PRDP-%');
+                  });
+            })
             ->sum('amount');
         $down = (float) ($order->downpayment ?? 0);
         $total = (float) ($order->total ?? 0);
