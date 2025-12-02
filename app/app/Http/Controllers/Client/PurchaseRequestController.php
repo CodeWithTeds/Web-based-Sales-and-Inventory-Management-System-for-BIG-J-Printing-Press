@@ -381,15 +381,25 @@ class PurchaseRequestController extends Controller
      */
     public function paymongoStartRemaining(Request $request)
     {
-        $order = $this->getApprovedPRForUser(Auth::id());
+        // Allow paying remaining for a specific approved PR selected from history
+        $orderId = $request->input('order_id');
+        if ($orderId) {
+            $order = Order::where('id', $orderId)
+                ->where('user_id', Auth::id())
+                ->where('order_number', 'like', 'PR-%')
+                ->where('status', 'approved')
+                ->first();
+        } else {
+            $order = $this->getApprovedPRForUser(Auth::id());
+        }
         if (!$order) {
             return redirect()->route('client.purchase-requests.select-category')
                 ->with('error', 'No approved Purchase Request found.');
         }
 
         $total = (float) ($order->total ?? 0);
-        $paid = (float) ($order->downpayment ?? 0);
-        $remaining = round(max(0.0, $total - $paid), 2);
+        $paidTotal = (float) ($order->downpayment ?? 0);
+        $remaining = round(max(0.0, $total - $paidTotal), 2);
         if ($remaining <= 0) {
             return redirect()->route('client.purchase-requests.payment')
                 ->with('status', 'No remaining balance to pay for order #' . $order->order_number . '.');

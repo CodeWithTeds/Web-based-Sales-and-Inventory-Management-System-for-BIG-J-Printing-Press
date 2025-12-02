@@ -42,6 +42,19 @@
                                     <td class="px-3 py-2 text-sm">{{ optional($order->created_at)->format('Y-m-d H:i') }}</td>
                                     <td class="px-3 py-2 text-sm">
                                         <a href="{{ route('client.orders.show', $order) }}" class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">View</a>
+                                        @php
+                                            $total = (float) ($order->total ?? 0);
+                                            $paidTotal = (float) ($order->downpayment ?? 0);
+                                            $remaining = max(0, round($total - $paidTotal, 2));
+                                        @endphp
+                                        @if($order->status === 'approved' && $remaining > 0)
+                                            <a href="{{ route('client.purchase-requests.paymongo.remaining.start', ['order_id' => $order->id]) }}"
+                                               class="ml-2 inline-flex items-center px-3 py-1 bg-[var(--color-primary)]/90 text-white rounded-md hover:brightness-95">
+                                                Pay Remaining (₱{{ number_format($remaining, 2) }})
+                                            </a>
+                                        @elseif($order->status === 'approved' && $remaining <= 0)
+                                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-700 text-xs">Fully Paid</span>
+                                        @endif
                                     </td>
                                 </tr>
                             @empty
