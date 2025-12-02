@@ -156,7 +156,7 @@
                                         <tr>
                                             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
                                             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
-                                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white dark:bg-zinc-900 divide-y divide-gray-200 dark:divide-zinc-700">
@@ -167,7 +167,7 @@
                                             </td>
                                             <td class="px-3 py-2 text-sm">{{ $item->qty }}</td>
                                             <td class="px-3 py-2 text-sm">
-                                                <input type="number" step="0.01" min="0" name="items[{{ $item->id }}][price]" value="{{ old('items.' . $item->id . '.price', $item->price) }}" class="w-32 rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                                                <input type="number" step="0.01" min="0" name="items[{{ $item->id }}][price]" value="{{ old('items.' . $item->id . '.price', $item->price) }}" class="w-32 rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" required aria-label="Unit price for {{ $item->name }}">
                                                 @error('items.' . $item->id . '.price')
                                                     <div class="text-xs text-red-600 mt-1">{{ $message }}</div>
                                                 @enderror
