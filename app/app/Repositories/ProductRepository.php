@@ -138,4 +138,31 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
         $product->sizes()->sync($sizeIds);
         return $product->fresh(['sizes']);
     }
+
+    /**
+     * Sync sizes with quantities for a product.
+     * Accepts a list of size IDs and an optional mapping of quantities per size.
+     */
+    public function syncSizesWithQuantities(int $productId, array $sizeIds, array $quantities = [])
+    {
+        $product = $this->find($productId);
+
+        // Build attach array: [sizeId => ['quantity' => n]]
+        $attach = [];
+        foreach ($sizeIds as $sid) {
+            $sidInt = (int) $sid;
+            $qty = 0;
+            // Support both int keys and string keys
+            if (array_key_exists($sidInt, $quantities)) {
+                $qty = (int) $quantities[$sidInt];
+            } elseif (array_key_exists((string) $sidInt, $quantities)) {
+                $qty = (int) $quantities[(string) $sidInt];
+            }
+            if ($qty < 0) { $qty = 0; }
+            $attach[$sidInt] = ['quantity' => $qty];
+        }
+
+        $product->sizes()->sync($attach);
+        return $product->fresh(['sizes']);
+    }
 }

@@ -97,6 +97,7 @@ class ProductController extends BaseController
                 $request->has('material_ids') && is_array($request->material_ids) ? $request->material_ids : null,
                 $request->has('quantities') && is_array($request->quantities) ? $request->quantities : null,
                 $request->has('size_ids') && is_array($request->size_ids) ? $request->size_ids : null,
+                $request->has('size_quantities') && is_array($request->size_quantities) ? $request->size_quantities : null,
             );
 
             return $this->respondWith(
@@ -185,6 +186,7 @@ class ProductController extends BaseController
             $validated,
             $request->hasFile('image') ? $request->file('image') : null,
             $request->has('size_ids') && is_array($request->size_ids) ? $request->size_ids : null,
+            $request->has('size_quantities') && is_array($request->size_quantities) ? $request->size_quantities : null,
         );
 
         return $this->respondWith(
@@ -224,6 +226,8 @@ class ProductController extends BaseController
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'size_ids' => 'nullable|array',
             'size_ids.*' => 'exists:sizes,id',
+            'size_quantities' => 'nullable|array',
+            'size_quantities.*' => 'integer|min:0',
         ]);
     }
 

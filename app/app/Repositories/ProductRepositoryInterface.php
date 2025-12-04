@@ -81,4 +81,14 @@ interface ProductRepositoryInterface extends BaseRepositoryInterface
      * @return \App\Models\Product
      */
     public function syncSizes(int $productId, array $sizeIds);
+
+    /**
+     * Sync sizes with quantities for a product
+     *
+     * @param int $productId
+     * @param array $sizeIds
+     * @param array $quantities sizeId => quantity mapping
+     * @return \App\Models\Product
+     */
+    public function syncSizesWithQuantities(int $productId, array $sizeIds, array $quantities = []);
 }

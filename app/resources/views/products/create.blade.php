@@ -53,7 +53,12 @@
                         <!-- Sizes -->
                         <div class="mt-4">
                             <x-input-label :value="__('Sizes')" />
-                            <div id="sizes-container" class="mt-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                            <div
+                                id="sizes-container"
+                                class="mt-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2"
+                                data-preselected-sizes='@json(old('size_ids', []))'
+                                data-preselected-size-quantities='@json(old('size_quantities', []))'
+                            >
                                 <p class="text-sm text-gray-500">Select a category to load sizes.</p>
                             </div>
                             <x-input-error :messages="$errors->get('size_ids')" class="mt-2" />
@@ -144,93 +149,5 @@
             </div>
         </div>
     </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const materialCheckboxes = document.querySelectorAll('input[name="material_ids[]"]');
-            const categorySelect = document.getElementById('category');
-            const sizesContainer = document.getElementById('sizes-container');
-            const preselectedSizes = {!! json_encode(old('size_ids', [])) !!};
-
-            // Add hidden input for each selected material with default quantity 1
-            materialCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    const materialId = this.value;
-                    const hiddenInputName = `quantities[${materialId}]`;
-                    
-                    // Remove existing hidden input for this material if exists
-                    const existingInput = document.querySelector(`input[name="${hiddenInputName}"]`);
-                    if (existingInput) {
-                        existingInput.remove();
-                    }
-                    
-                    // If checkbox is checked, create hidden input with default quantity 1
-                    if (this.checked) {
-                        const hiddenInput = document.createElement('input');
-                        hiddenInput.type = 'hidden';
-                        hiddenInput.name = hiddenInputName;
-                        hiddenInput.value = '1'; // Default quantity
-                        document.querySelector('form').appendChild(hiddenInput);
-                    }
-                });
-            });
-
-            async function loadSizesByCategoryId(categoryId) {
-                if (!categoryId) {
-                    sizesContainer.innerHTML = '<p class="text-sm text-gray-500">Select a category to load sizes.</p>';
-                    return;
-                }
-                try {
-                    sizesContainer.innerHTML = '<p class="text-sm text-gray-500">Loading sizes...</p>';
-                    const res = await fetch(`/sizes/by-category/${categoryId}`, { headers: { 'Accept': 'application/json' } });
-                    const data = await res.json();
-                    const items = Array.isArray(data.items) ? data.items : [];
-                    if (!items.length) {
-                        sizesContainer.innerHTML = '<p class="text-sm text-gray-500">No sizes available for this category.</p>';
-                        return;
-                    }
-                    const fragment = document.createDocumentFragment();
-                    items.forEach(size => {
-                        const wrapper = document.createElement('div');
-                        wrapper.className = 'flex items-center';
-                        const input = document.createElement('input');
-                        input.type = 'checkbox';
-                        input.id = `size_${size.id}`;
-                        input.name = 'size_ids[]';
-                        input.value = String(size.id);
-                        input.className = 'rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50';
-                        if (preselectedSizes.includes(String(size.id)) || preselectedSizes.includes(Number(size.id))) {
-                            input.checked = true;
-                        }
-                        const label = document.createElement('label');
-                        label.setAttribute('for', `size_${size.id}`);
-                        label.className = 'ml-2 text-sm text-gray-700';
-                        label.textContent = `${size.name}`;
-                        wrapper.appendChild(input);
-                        wrapper.appendChild(label);
-                        fragment.appendChild(wrapper);
-                    });
-                    sizesContainer.innerHTML = '';
-                    sizesContainer.appendChild(fragment);
-                } catch (e) {
-                    sizesContainer.innerHTML = '<p class="text-sm text-red-600">Failed to load sizes. Please try again.</p>';
-                }
-            }
-
-            // On category change, fetch sizes using selected option's data-id
-            categorySelect.addEventListener('change', function() {
-                const option = this.options[this.selectedIndex];
-                const categoryId = option ? option.getAttribute('data-id') : null;
-                loadSizesByCategoryId(categoryId);
-            });
-
-            // If a category is already selected (old input), load sizes initially
-            (function initialLoad() {
-                const option = categorySelect.options[categorySelect.selectedIndex];
-                const categoryId = option ? option.getAttribute('data-id') : null;
-                if (categoryId) {
-                    loadSizesByCategoryId(categoryId);
-                }
-            })();
-        });
-    </script>
+    
 </x-app-layout>

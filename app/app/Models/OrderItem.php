@@ -17,6 +17,7 @@ class OrderItem extends Model
         'qty',
         'price',
         'line_total',
+        'selections',
     ];
 
     public function order(): BelongsTo
@@ -28,4 +29,8 @@ class OrderItem extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    protected $casts = [
+        'selections' => 'array',
+    ];
 }

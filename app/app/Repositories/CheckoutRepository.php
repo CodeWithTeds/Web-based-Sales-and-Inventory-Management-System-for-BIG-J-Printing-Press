@@ -6,6 +6,8 @@ use App\Models\Material;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\InventoryTransaction;
+use App\Models\Product;
+use App\Models\Size;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -14,7 +16,7 @@ class CheckoutRepository
     /**
      * Process a checkout: create order, items, validate and deduct material stock atomically.
      * @param array $orderData
-     * @param array<int, array{product_id:int,name:string,qty:int,price:float,line_total:float}> $items
+     * @param array<int, array{product_id:int,name:string,qty:int,price:float,line_total:float,selections?:array}> $items
      * @param array<int,float> $materialRequirements material_id => total_required
      * @param bool $skipStock When true, skip stock validation and deduction (used for client ordering "free" orders)
      * @return Order
@@ -61,6 +63,7 @@ class CheckoutRepository
                     'qty'        => $it['qty'],
                     'price'      => $it['price'],
                     'line_total' => $it['line_total'],
+                    'selections' => $it['selections'] ?? null,
                 ]);
             }
 
@@ -82,6 +85,46 @@ class CheckoutRepository
                         'notes'        => 'Used in POS order ' . ($order->order_number ?? ''),
                         'created_by'   => Auth::id(),
                     ]);
+                }
+
+                // Deduct product size stock when selections specify sizes
+                foreach ($items as $it) {
+                    $productId = (int) ($it['product_id'] ?? 0);
+                    $qty = (int) ($it['qty'] ?? 0);
+                    if ($productId <= 0 || $qty < 1) { continue; }
+                    $sizeIds = [];
+                    if (isset($it['selections']) && is_array($it['selections']) && isset($it['selections']['size_ids']) && is_array($it['selections']['size_ids'])) {
+                        $sizeIds = array_values(array_filter(array_map(fn($v) => (int) $v, $it['selections']['size_ids']), fn($n) => $n > 0));
+                    }
+                    if (empty($sizeIds)) { continue; }
+
+                    $product = Product::find($productId);
+                    foreach ($sizeIds as $sid) {
+                        $pivot = DB::table('product_size')
+                            ->where('product_id', $productId)
+                            ->where('size_id', (int) $sid)
+                            ->lockForUpdate()
+                            ->first();
+                        if (!$pivot) { continue; }
+                        $available = (int) ($pivot->quantity ?? 0);
+                        $deduct = min($available, $qty);
+                        $newQty = max($available - $deduct, 0);
+                        DB::table('product_size')->where('id', $pivot->id)->update(['quantity' => $newQty]);
+
+                        if ($deduct > 0) {
+                            $sizeName = Size::find((int) $sid)?->name ?? ('Size #' . (int) $sid);
+                            InventoryTransaction::create([
+                                'subject_type' => 'product',
+                                'subject_id'   => (int) ($product?->id ?? $productId),
+                                'type'         => 'out',
+                                'quantity'     => (float) $deduct,
+                                'unit'         => $product?->unit ?? null,
+                                'name'         => $product?->name ? ($product->name . ' - ' . $sizeName) : null,
+                                'notes'        => 'Size stock used in order ' . ($order->order_number ?? ''),
+                                'created_by'   => Auth::id(),
+                            ]);
+                        }
+                    }
                 }
             }
 
@@ -140,6 +183,7 @@ class CheckoutRepository
                         'qty'        => $it['qty'],
                         'price'      => $it['price'],
                         'line_total' => $it['line_total'],
+                        'selections' => $it['selections'] ?? null,
                     ]);
                 }
                 $orders[] = $order;
@@ -161,6 +205,49 @@ class CheckoutRepository
                     'notes'        => 'Used in batch PO ' . $poNumber,
                     'created_by'   => Auth::id(),
                 ]);
+            }
+
+            // Deduct product size stock for each order in the batch when sizes are provided,
+            // based on persisted selections on the order items
+            foreach ($orders as $order) {
+                foreach ($order->items as $it) {
+                    $productId = (int) ($it->product_id ?? 0);
+                    $qty = (int) ($it->qty ?? 0);
+                    if ($productId <= 0 || $qty < 1) { continue; }
+                    $sel = is_array($it->selections) ? $it->selections : [];
+                    $sizeIds = isset($sel['size_ids']) && is_array($sel['size_ids'])
+                        ? array_values(array_filter(array_map(fn($v) => (int) $v, $sel['size_ids']), fn($n) => $n > 0))
+                        : [];
+                    if (empty($sizeIds)) { continue; }
+
+                    $product = Product::find($productId);
+                    foreach ($sizeIds as $sid) {
+                        $pivot = DB::table('product_size')
+                            ->where('product_id', $productId)
+                            ->where('size_id', (int) $sid)
+                            ->lockForUpdate()
+                            ->first();
+                        if (!$pivot) { continue; }
+                        $available = (int) ($pivot->quantity ?? 0);
+                        $deduct = min($available, $qty);
+                        $newQty = max($available - $deduct, 0);
+                        DB::table('product_size')->where('id', $pivot->id)->update(['quantity' => $newQty]);
+
+                        if ($deduct > 0) {
+                            $sizeName = Size::find((int) $sid)?->name ?? ('Size #' . (int) $sid);
+                            InventoryTransaction::create([
+                                'subject_type' => 'product',
+                                'subject_id'   => (int) ($product?->id ?? $productId),
+                                'type'         => 'out',
+                                'quantity'     => (float) $deduct,
+                                'unit'         => $product?->unit ?? null,
+                                'name'         => $product?->name ? ($product->name . ' - ' . $sizeName) : null,
+                                'notes'        => 'Size stock used in batch PO ' . $poNumber,
+                                'created_by'   => Auth::id(),
+                            ]);
+                        }
+                    }
+                }
             }
 
             return $orders;

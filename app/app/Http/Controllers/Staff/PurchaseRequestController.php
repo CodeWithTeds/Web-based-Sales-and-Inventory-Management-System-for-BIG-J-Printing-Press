@@ -75,12 +75,18 @@ class PurchaseRequestController extends Controller
             // For PRs, do NOT set price yet; admin will price later
             $price = 0.0;
             $lineTotal = 0.0;
+            // Capture optional size selections (array of size IDs)
+            $sizeIds = [];
+            if (isset($row['size_ids']) && is_array($row['size_ids'])) {
+                $sizeIds = array_values(array_filter(array_map(fn($v) => (int) $v, $row['size_ids']), fn($n) => $n > 0));
+            }
             $lineItems[] = [
                 'product_id' => $product->id,
                 'name' => (string) $product->name,
                 'qty' => $qty,
                 'price' => $price,
                 'line_total' => $lineTotal,
+                'selections' => !empty($sizeIds) ? ['size_ids' => $sizeIds] : null,
             ];
             // Keep total at 0 for PR initial state
         }

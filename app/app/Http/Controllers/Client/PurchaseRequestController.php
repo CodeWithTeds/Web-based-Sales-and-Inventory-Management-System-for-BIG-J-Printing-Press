@@ -88,6 +88,46 @@ class PurchaseRequestController extends Controller
                     }
                 }
 
+                // Deduct product size stock if items have size selections
+                foreach ($order->items as $it) {
+                    $productId = (int) ($it->product_id ?? 0);
+                    $qty = (int) ($it->qty ?? 0);
+                    if ($productId <= 0 || $qty < 1) { continue; }
+                    $sel = is_array($it->selections) ? $it->selections : [];
+                    $sizeIds = isset($sel['size_ids']) && is_array($sel['size_ids'])
+                        ? array_values(array_filter(array_map(fn($v) => (int) $v, $sel['size_ids']), fn($n) => $n > 0))
+                        : [];
+                    if (empty($sizeIds)) { continue; }
+
+                    $product = Product::find($productId);
+                    foreach ($sizeIds as $sid) {
+                        $pivot = DB::table('product_size')
+                            ->where('product_id', $productId)
+                            ->where('size_id', (int) $sid)
+                            ->lockForUpdate()
+                            ->first();
+                        if (!$pivot) { continue; }
+                        $available = (int) ($pivot->quantity ?? 0);
+                        $deduct = min($available, $qty);
+                        $newQty = max($available - $deduct, 0);
+                        DB::table('product_size')->where('id', $pivot->id)->update(['quantity' => $newQty]);
+
+                        if ($deduct > 0) {
+                            $sizeName = \App\Models\Size::find((int) $sid)?->name ?? ('Size #' . (int) $sid);
+                            InventoryTransaction::create([
+                                'subject_type' => 'product',
+                                'subject_id'   => (int) ($product?->id ?? $productId),
+                                'type'         => 'out',
+                                'quantity'     => (float) $deduct,
+                                'unit'         => $product?->unit ?? null,
+                                'name'         => $product?->name ? ($product->name . ' - ' . $sizeName) : null,
+                                'notes'        => 'Size stock used in order ' . ($order->order_number ?? ''),
+                                'created_by'   => Auth::id(),
+                            ]);
+                        }
+                    }
+                }
+
                 // Persist new material-to-product mappings for manually added materials
                 $orderedQtyByProduct = [];
                 foreach ($order->items as $it) {
@@ -217,12 +257,18 @@ class PurchaseRequestController extends Controller
             // For PRs, do NOT set price yet; admin will price later
             $price = 0.0;
             $lineTotal = 0.0;
+            // Capture optional size selections (array of size IDs) if provided by client form
+            $sizeIds = [];
+            if (isset($row['size_ids']) && is_array($row['size_ids'])) {
+                $sizeIds = array_values(array_filter(array_map(fn($v) => (int) $v, $row['size_ids']), fn($n) => $n > 0));
+            }
             $lineItems[] = [
                 'product_id' => $product->id,
                 'name' => (string) $product->name,
                 'qty' => $qty,
                 'price' => $price,
                 'line_total' => $lineTotal,
+                'selections' => !empty($sizeIds) ? ['size_ids' => $sizeIds] : null,
             ];
             // Keep total at 0 for PR initial state
         }

@@ -43,9 +43,9 @@ class ProductService
         ];
     }
 
-    public function create(array $data, ?UploadedFile $image = null, ?array $materialIds = null, ?array $quantities = null, ?array $sizeIds = null)
+    public function create(array $data, ?UploadedFile $image = null, ?array $materialIds = null, ?array $quantities = null, ?array $sizeIds = null, ?array $sizeQuantities = null)
     {
-        return DB::transaction(function () use ($data, $image, $materialIds, $quantities, $sizeIds) {
+        return DB::transaction(function () use ($data, $image, $materialIds, $quantities, $sizeIds, $sizeQuantities) {
             // Default status to Available when not provided
             if (!isset($data['status']) || empty($data['status'])) {
                 $data['status'] = 'Available';
@@ -70,9 +70,10 @@ class ProductService
                 }
             }
 
-            // Attach sizes if provided
+            // Attach sizes (with quantities) if provided
             if (is_array($sizeIds) && !empty($sizeIds)) {
-                $this->products->syncSizes($item->id, array_map('intval', $sizeIds));
+                $sq = is_array($sizeQuantities) ? $sizeQuantities : [];
+                $this->products->syncSizesWithQuantities($item->id, array_map('intval', $sizeIds), $sq);
             }
 
             return $item->load('materials', 'sizes');
@@ -91,7 +92,7 @@ class ProductService
         ];
     }
 
-    public function update(string|int $id, array $data, ?UploadedFile $image = null, ?array $sizeIds = null)
+    public function update(string|int $id, array $data, ?UploadedFile $image = null, ?array $sizeIds = null, ?array $sizeQuantities = null)
     {
         $item = $this->products->find($id);
         $oldQuantity = (int) ($item->quantity ?? 0);
@@ -110,9 +111,10 @@ class ProductService
             $this->products->update($id, $data);
         }
 
-        // Sync sizes if provided
+        // Sync sizes (with quantities) if provided
         if (is_array($sizeIds)) {
-            $this->products->syncSizes($id, array_map('intval', $sizeIds));
+            $sq = is_array($sizeQuantities) ? $sizeQuantities : [];
+            $this->products->syncSizesWithQuantities((int) $id, array_map('intval', $sizeIds), $sq);
         }
 
         // After update, log inventory transaction if quantity changed
