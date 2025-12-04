@@ -196,86 +196,45 @@ class OrdersController extends Controller
                     $total += (float) $item->line_total;
                 }
 
-                // Deduct materials; auto-clamp to available and track shortfalls
-                $shortfalls = [];
-                foreach ($allocations as $materialId => $qty) {
-                    /** @var Material $material */
-                    $material = Material::findOrFail($materialId);
-                    $current = (float) $material->quantity;
-                    $requested = (float) $qty;
-                    $allocate = min($requested, $current);
-                    $material->quantity = max($current - $allocate, 0);
-                    $material->save();
-
-                    // Log inventory transaction for Materials Out / Used
-                    if ($allocate > 0) {
-                        \App\Models\InventoryTransaction::create([
-                            'subject_type' => 'material',
-                            'subject_id'   => (int) $material->id,
-                            'type'         => 'out',
-                            'quantity'     => (float) $allocate,
-                            'unit'         => $material->unit ?? null,
-                            'name'         => $material->name ?? null,
-                            'notes'        => 'Used in order ' . ($order->order_number ?? ''),
-                            'created_by'   => \Illuminate\Support\Facades\Auth::id(),
-                        ]);
-                    }
-
-                    $required = (float) ($requirements[$materialId] ?? $requested);
-                    $shortfall = max($required - $allocate, 0);
-                    if ($shortfall > 0) {
-                        $shortfalls[$material->name] = $shortfall;
-                    }
-                }
-
-                // Persist new material-to-product mappings for manually added materials
-                // Compute ordered quantity per product in this order (for per-unit pivot quantity)
-                $orderedQtyByProduct = [];
-                foreach ($order->items as $it) {
-                    if ($it->product_id) {
-                        $orderedQtyByProduct[$it->product_id] = ($orderedQtyByProduct[$it->product_id] ?? 0) + (int) $it->qty;
-                    }
-                }
-                if (!empty($validated['materials'])) {
-                    foreach ($validated['materials'] as $mRow) {
-                        $mid = (int) ($mRow['id'] ?? 0);
-                        $pid = isset($mRow['product_id']) ? (int) $mRow['product_id'] : 0;
-                        $postedQty = (float) ($mRow['qty'] ?? 0);
-                        $postedReq = isset($mRow['required']) ? (float) $mRow['required'] : null;
-                        $basis = ($postedReq !== null && $postedReq > 0) ? $postedReq : $postedQty;
-                        if ($mid > 0 && $pid > 0 && $basis > 0 && isset($orderedQtyByProduct[$pid]) && $orderedQtyByProduct[$pid] > 0) {
-                            $perUnit = round($basis / (float) $orderedQtyByProduct[$pid], 6);
-                            $product = Product::find($pid);
-                            if ($product) {
-                                $exists = $product->materials()->where('materials.id', $mid)->exists();
-                                if (!$exists) {
-                                    $product->materials()->attach($mid, ['quantity' => $perUnit]);
-                                }
-                            }
-                        }
-                    }
-                }
-
                 // Update order fields
                 $order->fill([
                     'total' => $total,
                     'delivery_date' => $validated['delivery_date'],
-                    'status' => 'approved',
-                    'delivery_status' => 'preparing',
+                    'status' => 'quoted',
+                    'delivery_status' => 'pending',
+                    'material_allocations' => [
+                        'allocations' => $allocations,
+                        'manual_materials' => $validated['materials'] ?? [],
+                        'requirements' => $requirements,
+                    ],
                 ]);
                 $order->save();
 
-                // Attach a status message about shortfalls (if any)
-                if (!empty($shortfalls)) {
-                    session()->flash('status', 'Approved with material shortfalls for: ' . implode(', ', array_map(function($name, $qty){ return $name . ' (' . $qty . ')'; }, array_keys($shortfalls), array_values($shortfalls))) . '. Allocations were clamped to available stock.');
-                } else {
-                    session()->flash('status', 'Purchase Request approved successfully.');
-                }
+                session()->flash('status', 'Quotation sent to client. Waiting for acceptance.');
             });
         } catch (\Throwable $e) {
-            return back()->withErrors(['approve' => 'Failed to approve request: ' . $e->getMessage()]);
+            return back()->withErrors(['approve' => 'Failed to send quotation: ' . $e->getMessage()]);
         }
 
         return redirect()->route('admin.orders.show', $order);
+    }
+
+    public function cancel(Request $request, Order $order)
+    {
+        if ($order->status !== 'pending') {
+            return back()->withErrors(['cancel' => 'Only pending Purchase Requests can be cancelled.']);
+        }
+
+        $validated = $request->validate([
+            'cancellation_reason' => ['nullable', 'string'],
+        ]);
+
+        $order->update([
+            'status' => 'cancelled',
+            'delivery_status' => 'cancelled',
+            'cancellation_reason' => $validated['cancellation_reason'] ?? null,
+        ]);
+
+        return back()->with('status', 'Purchase Request cancelled.');
     }
 }

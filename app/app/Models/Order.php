@@ -25,10 +25,17 @@ class Order extends Model
         'user_id',
         'user_address_id',
         'attachment_path',
+        'material_allocations',
+        'cancellation_reason',
     ];
 
     // Expose a virtual total_amount attribute for legacy references
     protected $appends = ['total_amount'];
+
+    protected $casts = [
+        'material_allocations' => 'array',
+        'delivery_date' => 'date',
+    ];
 
     public function items(): HasMany
     {

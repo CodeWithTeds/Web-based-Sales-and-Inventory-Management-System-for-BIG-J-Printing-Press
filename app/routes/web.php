@@ -237,6 +237,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/orders/{order}', [OrdersController::class, 'show'])->name('admin.orders.show');
     Route::put('/orders/{order}/delivery-status', [OrdersController::class, 'updateDeliveryStatus'])->name('admin.orders.delivery.update');
     Route::put('/orders/{order}/approve', [OrdersController::class, 'approve'])->name('admin.orders.approve');
+    Route::put('/orders/{order}/cancel', [OrdersController::class, 'cancel'])->name('admin.orders.cancel');
 
     // Purchase Requests (admin-only view: filter PR orders)
     Route::get('/purchase-requests', [OrdersController::class, 'prIndex'])->name('admin.purchase-requests.index');
@@ -427,6 +428,8 @@ Route::get('/purchase-requests/history', [\App\Http\Controllers\Client\PurchaseR
 Route::get('/purchase-requests/payment', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'payment'])->name('client.purchase-requests.payment');
     Route::get('/purchase-requests/create/{category}', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'createByCategory'])->name('client.purchase-requests.create');
     Route::post('/purchase-requests', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'store'])->name('client.purchase-requests.store');
+    Route::post('/purchase-requests/{order}/accept', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'accept'])->name('client.purchase-requests.accept');
+    Route::post('/purchase-requests/{order}/cancel', [\App\Http\Controllers\Client\PurchaseRequestController::class, 'cancel'])->name('client.purchase-requests.cancel');
 
     // Client JSON endpoints to power PR flow dynamic dropdowns
     Route::get('/products/by-category/{category}', [\App\Http\Controllers\ProductController::class, 'byCategory'])->name('client.products.by-category');

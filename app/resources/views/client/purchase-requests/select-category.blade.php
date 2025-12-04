@@ -22,6 +22,85 @@ $pageTitle = 'Quick Purchase Request';
         <div class="rounded-2xl border border-zinc-200 p-8 shadow-lg ring-1 ring-black/5">
             <!-- Pending PR notice: block new PR creation until approval -->
             @if (!empty($hasPending) && $hasPending && !empty($pendingOrder))
+                @if(isset($quotedOrder) && $quotedOrder)
+                    <div class="rounded-xl border border-blue-300 bg-blue-50 p-5 mb-6">
+                        <div class="flex items-start gap-3">
+                            <!-- Info Icon -->
+                            <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div class="w-full">
+                                <h3 class="text-lg font-medium text-blue-800">Your Request has been Quoted!</h3>
+                                <p class="text-sm text-blue-700 mt-1">
+                                    PR <span class="font-semibold">#{{ $quotedOrder->order_number }}</span> has been reviewed by the admin.
+                                </p>
+                                
+                                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-4 rounded-lg border border-blue-200">
+                                    <div>
+                                        <span class="text-xs text-gray-500 uppercase tracking-wider">Total Price</span>
+                                        <div class="text-xl font-bold text-gray-900">₱{{ number_format($quotedOrder->total, 2) }}</div>
+                                    </div>
+                                    <div>
+                                        <span class="text-xs text-gray-500 uppercase tracking-wider">Estimated Delivery</span>
+                                        <div class="text-xl font-bold text-gray-900">
+                                            {{ $quotedOrder->delivery_date ? $quotedOrder->delivery_date->format('M d, Y') : 'TBA' }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                                    <form action="{{ route('client.purchase-requests.accept', $quotedOrder) }}" method="POST" class="w-full sm:w-auto">
+                                        @csrf
+                                        <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                            Accept Quotation
+                                        </button>
+                                    </form>
+
+                                    <button type="button" onclick="document.getElementById('cancel-pr-modal').classList.remove('hidden')" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        Cancel Request
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Cancellation Modal -->
+                    <div id="cancel-pr-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="document.getElementById('cancel-pr-modal').classList.add('hidden')"></div>
+                            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                                <form action="{{ route('client.purchase-requests.cancel', $quotedOrder) }}" method="POST">
+                                    @csrf
+                                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                        <div class="sm:flex sm:items-start">
+                                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                                                <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                </svg>
+                                            </div>
+                                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                                                <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Cancel Purchase Request</h3>
+                                                <div class="mt-2">
+                                                    <p class="text-sm text-gray-500">Are you sure you want to cancel this request? Please provide a reason.</p>
+                                                    <textarea name="cancellation_reason" rows="3" class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm" required placeholder="Reason for cancellation..."></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+                                            Confirm Cancellation
+                                        </button>
+                                        <button type="button" onclick="document.getElementById('cancel-pr-modal').classList.add('hidden')" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                                            Keep Request
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                @else
                 <div class="rounded-xl border border-yellow-300 bg-yellow-50 p-5 mb-6">
                     <div class="flex items-start gap-3">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="mt-0.5 text-yellow-600"><path d="M12 9v4m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -34,6 +113,7 @@ $pageTitle = 'Quick Purchase Request';
                         </div>
                     </div>
                 </div>
+                @endif
             @endif
 
             <!-- Dynamic PR Form: Category → Product → Size → Paper Type → Ply -->

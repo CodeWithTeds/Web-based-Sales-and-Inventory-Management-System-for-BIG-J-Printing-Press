@@ -78,10 +78,25 @@ document.addEventListener('DOMContentLoaded', () => {
   if (statusNode && statusNode.dataset.message) {
     const showSwal = () => {
       if (!window.Swal) return;
+      const message = String(statusNode.dataset.message || '');
+      let title = 'Step 3: Waiting for Admin Approval';
+      let icon = 'info';
+
+      if (/accepted/i.test(message)) {
+        title = 'Quotation Accepted';
+        icon = 'success';
+      } else if (/cancelled|canceled/i.test(message)) {
+        title = 'Request Cancelled';
+        icon = 'warning';
+      } else if (/paid|payment/i.test(message)) {
+        title = 'Payment Successful';
+        icon = 'success';
+      }
+
       window.Swal.fire({
-        title: 'Step 3: Waiting for Admin Approval',
-        text: statusNode.dataset.message,
-        icon: 'info',
+        title,
+        text: message,
+        icon,
         confirmButtonText: 'OK',
       });
     };

@@ -7,10 +7,13 @@ use App\Models\Order;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Payment;
+use App\Models\Material;
+use App\Models\InventoryTransaction;
 use App\Repositories\CheckoutRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route as RouteFacade;
 
 class PurchaseRequestController extends Controller
@@ -30,6 +33,12 @@ class PurchaseRequestController extends Controller
             ->pluck('category');
         $pending = $this->getPendingPRForUser(Auth::id());
         $approved = $this->getApprovedPRForUser(Auth::id());
+        $quoted = Order::where('user_id', Auth::id())
+            ->where('order_number', 'like', 'PR-%')
+            ->where('status', 'quoted')
+            ->latest()
+            ->first();
+
         return view('client.purchase-requests.select-category', [
             // Keep old 'categories' for compatibility, but prefer productCategories in view
             'categories' => [],
@@ -37,7 +46,107 @@ class PurchaseRequestController extends Controller
             'hasPending' => (bool) $pending,
             'pendingOrder' => $pending,
             'approvedOrder' => $approved,
+            'quotedOrder' => $quoted,
         ]);
+    }
+
+    public function accept(Order $order)
+    {
+        if ($order->user_id !== Auth::id() || $order->status !== 'quoted') {
+            abort(403);
+        }
+
+        $materialAllocations = $order->material_allocations;
+        $allocations = $materialAllocations['allocations'] ?? [];
+        $manualMaterials = $materialAllocations['manual_materials'] ?? [];
+        $requirements = $materialAllocations['requirements'] ?? [];
+
+        try {
+            DB::transaction(function () use ($order, $allocations, $manualMaterials, $requirements) {
+                // Deduct materials; auto-clamp to available and track shortfalls
+                foreach ($allocations as $materialId => $qty) {
+                    /** @var Material $material */
+                    $material = Material::findOrFail($materialId);
+                    $current = (float) $material->quantity;
+                    $requested = (float) $qty;
+                    $allocate = min($requested, $current);
+                    $material->quantity = max($current - $allocate, 0);
+                    $material->save();
+
+                    // Log inventory transaction for Materials Out / Used
+                    if ($allocate > 0) {
+                        InventoryTransaction::create([
+                            'subject_type' => 'material',
+                            'subject_id'   => (int) $material->id,
+                            'type'         => 'out',
+                            'quantity'     => (float) $allocate,
+                            'unit'         => $material->unit ?? null,
+                            'name'         => $material->name ?? null,
+                            'notes'        => 'Used in order ' . ($order->order_number ?? ''),
+                            'created_by'   => Auth::id(),
+                        ]);
+                    }
+                }
+
+                // Persist new material-to-product mappings for manually added materials
+                $orderedQtyByProduct = [];
+                foreach ($order->items as $it) {
+                    if ($it->product_id) {
+                        $orderedQtyByProduct[$it->product_id] = ($orderedQtyByProduct[$it->product_id] ?? 0) + (int) $it->qty;
+                    }
+                }
+                if (!empty($manualMaterials)) {
+                    foreach ($manualMaterials as $mRow) {
+                        $mid = (int) ($mRow['id'] ?? 0);
+                        $pid = isset($mRow['product_id']) ? (int) $mRow['product_id'] : 0;
+                        $postedQty = (float) ($mRow['qty'] ?? 0);
+                        $postedReq = isset($mRow['required']) ? (float) $mRow['required'] : null;
+                        $basis = ($postedReq !== null && $postedReq > 0) ? $postedReq : $postedQty;
+                        if ($mid > 0 && $pid > 0 && $basis > 0 && isset($orderedQtyByProduct[$pid]) && $orderedQtyByProduct[$pid] > 0) {
+                            $perUnit = round($basis / (float) $orderedQtyByProduct[$pid], 6);
+                            $product = Product::find($pid);
+                            if ($product) {
+                                $exists = $product->materials()->where('materials.id', $mid)->exists();
+                                if (!$exists) {
+                                    $product->materials()->attach($mid, ['quantity' => $perUnit]);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Update Status
+                $order->update([
+                    'status' => 'approved',
+                    'delivery_status' => 'preparing',
+                ]);
+            });
+        } catch (\Throwable $e) {
+            return back()->withErrors(['accept' => 'Failed to accept quotation: ' . $e->getMessage()]);
+        }
+
+        return redirect()->route('client.purchase-requests.payment')
+            ->with('status', 'Quotation accepted. You can now proceed to payment.');
+    }
+
+    public function cancel(Request $request, Order $order)
+    {
+        if ($order->user_id !== Auth::id() || $order->status !== 'quoted') {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'cancellation_reason' => ['required', 'string'],
+        ]);
+
+        $order->update([
+            'status' => 'cancelled',
+            'delivery_status' => 'cancelled',
+            'cancellation_reason' => $validated['cancellation_reason'],
+        ]);
+
+        return redirect()->route('client.purchase-requests.select-category')
+            ->with('status', 'Purchase Request cancelled.');
     }
 
     /**
