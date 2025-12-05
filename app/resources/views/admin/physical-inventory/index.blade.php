@@ -46,6 +46,7 @@
                                 <tr>
                                     <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Image') }}</th>
                                     <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Product Name') }}</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Sizes') }}</th>
                                     <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('System Quantity') }}</th>
                                     <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Physical Count') }}</th>
                                     <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Remarks') }}</th>
@@ -62,6 +63,18 @@
                                             <img src="{{ $thumb }}" alt="{{ $item->name }}" class="h-10 w-10 rounded object-cover">
                                         </td>
                                         <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{{ $item->name }}</td>
+                                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            @php $sizes = $item->sizes ?? collect(); @endphp
+                                            @if($sizes->count() > 0)
+                                                <div class="flex flex-wrap gap-1">
+                                                    @foreach($sizes as $s)
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">{{ $s->name }} ({{ (int)($s->pivot->quantity ?? 0) }})</span>
+                                                    @endforeach
+                                                </div>
+                                            @else
+                                                <span class="text-xs text-gray-500">—</span>
+                                            @endif
+                                        </td>
                                         <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{{ $item->quantity }}</td>
                                         <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                                             <input type="number" value="{{ $item->physical_count ?? '' }}" class="block w-24 rounded-md border-gray-300 text-sm" readonly>
@@ -134,6 +147,27 @@
                                                     </div>
                                                 </div>
 
+                                                @php $sizes = $item->sizes ?? collect(); @endphp
+                                                @if($sizes->count() > 0)
+                                                <div class="mt-6">
+                                                    <label class="block text-base font-medium text-gray-800">{{ __('Sizes') }}</label>
+                                                    <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                        @foreach($sizes as $s)
+                                                        <div class="flex items-center gap-2 border border-gray-200 rounded-md p-2">
+                                                            <div class="flex-1">
+                                                                <div class="text-sm font-medium text-gray-800">{{ $s->name }}</div>
+                                                                <div class="text-xs text-gray-500">{{ __('Current') }}: {{ (int)($s->pivot->quantity ?? 0) }}</div>
+                                                            </div>
+                                                            <div class="w-24">
+                                                                <input type="number" min="0" name="size_quantities[{{ $s->id }}]" value="{{ old('size_quantities.' . $s->id, (int)($s->pivot->quantity ?? 0)) }}" class="block w-full rounded-md border-gray-300 text-sm">
+                                                            </div>
+                                                        </div>
+                                                        @endforeach
+                                                    </div>
+                                                    <x-input-error :messages="$errors->get('size_quantities')" class="mt-2" />
+                                                </div>
+                                                @endif
+
                                                 <div class="mt-6 flex items-center justify-end gap-2">
                                                     <flux:modal.close>
                                                         <button type="button" class="inline-flex items-center px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-xs font-semibold hover:bg-gray-200">{{ __('Close') }}</button>
@@ -147,7 +181,7 @@
                                     </flux:modal>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="px-4 py-8 text-center text-sm text-gray-500">{{ __('No products found.') }}</td>
+                                        <td colspan="7" class="px-4 py-8 text-center text-sm text-gray-500">{{ __('No products found.') }}</td>
                                     </tr>
                                 @endforelse
                             </tbody>

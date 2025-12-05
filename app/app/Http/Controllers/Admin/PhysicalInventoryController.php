@@ -15,7 +15,7 @@ class PhysicalInventoryController extends Controller
     {
         $q = trim((string) $request->input('q'));
 
-        $items = Product::query()
+        $items = Product::query()->with('sizes')
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($sub) use ($q) {
                     $sub->where('name', 'like', "%$q%")
@@ -40,6 +40,8 @@ class PhysicalInventoryController extends Controller
         $data = $request->validate([
             'physical_count' => ['required', 'integer', 'min:0'],
             'remarks' => ['nullable', 'string', 'max:1000'],
+            'size_quantities' => ['nullable', 'array'],
+            'size_quantities.*' => ['integer', 'min:0'],
         ]);
 
         // Store physical count separately; do not alter system quantity
@@ -48,6 +50,15 @@ class PhysicalInventoryController extends Controller
             $product->notes = $data['remarks'];
         }
         $product->save();
+
+        if (is_array($data['size_quantities'] ?? null)) {
+            foreach ($data['size_quantities'] as $sid => $qty) {
+                $sidInt = (int) $sid;
+                $q = (int) $qty;
+                if ($q < 0) { $q = 0; }
+                $product->sizes()->updateExistingPivot($sidInt, ['quantity' => $q]);
+            }
+        }
 
         return back()->with('success', __('Inventory updated successfully.'));
     }
